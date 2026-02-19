@@ -283,7 +283,10 @@
 
     <script>
         const username = localStorage.getItem('arctic_user');
-        if (!username) window.location.href = 'login.html';
+        const token = localStorage.getItem('arctic_token'); // NOUVEAU : On sort le bracelet de la poche
+        
+        // Si pas de compte ou pas de bracelet, on renvoie au login
+        if (!username || !token) window.location.href = 'login.html';
 
         // --- LISTE DES NOMS CORRIGÉS (Avec tes noms perso) ---
         const PRODUCT_NAMES = { 
@@ -445,7 +448,14 @@
             btn.innerText = '...';
             btn.disabled = true;
 
-            const res = await fetch('/api/harvest', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username }) });
+            const res = await fetch('/api/harvest', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token // NOUVEAU : Le joueur lève le bras et montre le bracelet !
+                }, 
+                body: JSON.stringify({ username }) 
+            });
             const data = await res.json();
             
             if (data.success) { 
@@ -459,7 +469,12 @@
         }
 
         async function addFakeMoney() {
-            await fetch('/api/add-money', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, amount: 50 }) });
+            // On envoie la clé admin "ARCTIC_BOSS" pour avoir le droit de se donner de l'argent
+            await fetch('/api/add-money', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username, amount: 50, adminKey: "ARCTIC_BOSS" }) 
+            });
             loadUserData();
         }
 
@@ -468,7 +483,11 @@
             sidebar.classList.toggle('open');
         }
 
-        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+        function logout() { 
+            localStorage.removeItem('arctic_user'); 
+            localStorage.removeItem('arctic_token'); // On déchire le bracelet en sortant !
+            window.location.href = 'index.html'; 
+        }
         
         loadUserData();
     </script>

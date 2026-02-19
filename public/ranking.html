@@ -239,13 +239,29 @@
     </div>
 
     <script>
+                // Vérification immédiate : si pas de badge, on dégage vers le login
+        if (!localStorage.getItem('arctic_token')) {
+            window.location.href = 'login.html';
+        }
         async function loadRanking() {
-            try {
-                // Double tentative pour être sûr de choper les données
-                let response = await fetch('/api/ranking');
-                if (!response.ok) response = await fetch('/api/leaderboard');
+            const token = localStorage.getItem('arctic_token'); // On récupère le bracelet VIP
 
-                if (!response.ok) throw new Error("Erreur serveur");
+            try {
+                // On envoie le token dans les "headers" pour que le vigile nous laisse passer
+                let response = await fetch('/api/ranking', {
+                    headers: {
+                        'Authorization': token 
+                    }
+                });
+
+                // Si ça échoue, on tente l'autre route (leaderboard) avec le token aussi
+                if (!response.ok) {
+                    response = await fetch('/api/leaderboard', {
+                        headers: { 'Authorization': token }
+                    });
+                }
+
+                if (!response.ok) throw new Error("Accès refusé ou Erreur serveur");
 
                 const data = await response.json();
                 const list = document.getElementById('ranking-list');
@@ -257,16 +273,13 @@
                 users.sort((a, b) => {
                     const vipA = a.vipLevel || a.vip || 1;
                     const vipB = b.vipLevel || b.vip || 1;
-                    
-                    if (vipB !== vipA) return vipB - vipA; // Le VIP le plus haut gagne
-                    return b.balance - a.balance; // Si égalité, le plus riche gagne
+                    if (vipB !== vipA) return vipB - vipA;
+                    return (b.balance || 0) - (a.balance || 0);
                 });
 
                 // Génération de l'affichage
                 users.forEach((user, index) => {
                     const realRank = index + 1;
-                    
-                    // Style de la ligne (Podium ou Normal)
                     let rankDisplay = `#${realRank}`;
                     let rowClass = '';
                     if (realRank === 1) { rankDisplay = '🥇'; rowClass = 'rank-1'; }
@@ -279,13 +292,11 @@
 
                     const vipLvl = user.vipLevel || user.vip || 1; 
                     const vipBadge = `<span class="mini-badge vb-${vipLvl}">VIP ${vipLvl}</span>`;
-
                     const avatarUrl = user.avatar || 'https://ui-avatars.com/api/?name=' + user.username + '&background=7c3aed&color=fff';
 
                     const html = `
                         <div class="rank-row ${rowClass} user-row">
                             <div class="col-pos">${rankDisplay}</div>
-                            
                             <div class="col-user">
                                 <div class="rank-avatar" style="background-image: url('${avatarUrl}');"></div>
                                 <div style="display:flex; align-items:center;">
@@ -294,15 +305,15 @@
                                     ${meBadge}
                                 </div>
                             </div>
-                            
-                            </div>
+                        </div>
                     `;
                     list.innerHTML += html;
                 });
 
             } catch (err) {
                 console.error(err);
-                document.getElementById('ranking-list').innerHTML = '<div style="padding:2rem; text-align:center;">Impossible de charger le classement.</div>';
+                document.getElementById('ranking-list').innerHTML = 
+                    `<div style="padding:2rem; text-align:center; color:#ef4444;">${err.message}. Veuillez vous reconnecter.</div>`;
             }
         }
 
@@ -327,7 +338,11 @@
             sidebar.classList.toggle('open');
         }
 
-        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+        function logout() { 
+            localStorage.removeItem('arctic_user'); 
+            localStorage.removeItem('arctic_token'); // On efface aussi le badge !
+            window.location.href = 'index.html'; 
+        }
 
         loadRanking();
     </script>

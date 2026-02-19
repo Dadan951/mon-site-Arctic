@@ -111,34 +111,61 @@
     <script>
         function showToast(message) {
             const container = document.getElementById('toast-container');
+            if (!container) return; // Sécurité si le container n'existe pas
+            
             const toast = document.createElement('div');
-            toast.style.cssText = `background: rgba(220, 38, 38, 0.9); border: 1px solid #ef4444; color: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 10px; animation: slideIn 0.3s;`;
+            // Style pour l'alerte
+            toast.style.cssText = `
+                background: rgba(220, 38, 38, 0.9); 
+                border: 1px solid #ef4444; 
+                color: #fff; 
+                padding: 12px 20px; 
+                border-radius: 8px; 
+                margin-bottom: 10px; 
+                box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+                animation: slideIn 0.3s forwards;
+            `;
             toast.innerText = message;
             container.appendChild(toast);
-            setTimeout(() => toast.remove(), 3000);
+            
+            // Disparaît après 3 secondes
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
         }
 
         async function login() {
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
             
-            if (!username || !password) return showToast("Veuillez remplir tous les champs.");
+            if (!usernameInput || !passwordInput) {
+                return showToast("Veuillez remplir tous les champs.");
+            }
 
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
                 });
 
                 const data = await response.json();
+
                 if (data.success) {
+                    // ÉTAPE CRUCIALE : On enregistre TOUT
                     localStorage.setItem('arctic_user', data.user.username);
+                    localStorage.setItem('arctic_token', data.token); // Le fameux badge !
+                    
+                    // Redirection
                     window.location.href = 'dashboard.html';
                 } else {
-                    showToast(data.message || "Erreur de connexion");
+                    showToast(data.message || "Pseudo ou mot de passe incorrect.");
                 }
-            } catch (error) { console.error(error); }
+            } catch (error) {
+                console.error("Erreur login:", error);
+                showToast("Le serveur ne répond pas. Vérifie ton déploiement Render.");
+            }
         }
     </script>
 </body>
