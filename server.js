@@ -242,5 +242,3 @@ app.post('/api/add-money', async (req, res) => {
 });
 
 app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur le port ${port}`));
-
-app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur http://localhost:${port}`));
