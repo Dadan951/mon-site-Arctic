@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Marché Noir</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* FOND VIOLET */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 80% 80%, rgba(76, 29, 149, 0.2), transparent 40%),
+                        radial-gradient(circle at 20% 20%, rgba(124, 58, 237, 0.15), transparent 40%);
+            filter: blur(80px);
+            animation: moveAurora 15s infinite alternate;
+        }
+        @keyframes moveAurora { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* SIDEBAR */
+        .sidebar { width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .logo img { width: 30px; -webkit-text-fill-color: initial; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        .main-content { margin-left: 270px; padding: 4rem 3rem; width: calc(100% - 270px); }
+
+        /* ENTÊTE AVEC SOLDE */
+        .market-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3rem; }
+        .user-wallet { background: rgba(20,20,25,0.8); padding: 10px 20px; border-radius: 30px; border: 1px solid #333; font-weight: bold; }
+        .wallet-amount { color: #a78bfa; }
+
+        /* GRILLE PRODUITS */
+        .products-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; }
+
+        /* CARTE PRODUIT AMÉLIORÉE */
+        .product-card {
+            background: rgba(20, 20, 25, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; overflow: hidden; transition: 0.3s; display: flex; flex-direction: column;
+        }
+        .product-card:hover { transform: translateY(-5px); border-color: #7c3aed; box-shadow: 0 10px 30px rgba(124, 58, 237, 0.15); }
+
+        .p-image { height: 160px; background-size: cover; background-position: center; position: relative; }
+        .roi-badge {
+            position: absolute; top: 10px; right: 10px;
+            background: rgba(0,0,0,0.7); color: #4ade80;
+            padding: 5px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;
+            backdrop-filter: blur(5px); border: 1px solid rgba(74, 222, 128, 0.3);
+        }
+
+        .p-content { padding: 1.5rem; display: flex; flex-direction: column; flex: 1; }
+        .p-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 5px; }
+        .p-desc { color: #aaa; font-size: 0.9rem; margin-bottom: 15px; line-height: 1.4; height: 40px; overflow: hidden; }
+
+        .p-stats { display: flex; justify-content: space-between; margin-bottom: 15px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 10px; }
+        .stat-item { text-align: center; }
+        .stat-label { font-size: 0.7rem; color: #666; text-transform: uppercase; }
+        .stat-val { font-weight: bold; color: #fff; }
+
+        .buy-btn {
+            width: 100%; padding: 12px; border: none; border-radius: 10px;
+            background: linear-gradient(90deg, #7c3aed, #4c1d95); color: white;
+            font-weight: bold; cursor: pointer; transition: 0.3s; margin-top: auto;
+        }
+        .buy-btn:hover { filter: brightness(1.2); transform: scale(1.02); }
+        .buy-btn:active { transform: scale(0.98); }
+
+        /* --- 1. CONFIGURATION DE BASE (PC) --- */
+        .mobile-toggle { display: none; }
+
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+            left: 0; 
+            top: 0;
+            transition: transform 0.3s ease-in-out; 
+        }
+
+        .main-content { 
+            margin-left: 270px; 
+            padding: 4rem 3rem; 
+            width: calc(100% - 270px); 
+        }
+
+        /* --- VERSION MOBILE --- */
+        @media screen and (max-width: 768px) {
+            .mobile-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; left: 15px;
+                z-index: 10000;
+                background: #111;
+                color: #fff;
+                border: 2px solid #7c3aed;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0; left: -100% !important;
+                width: 250px; height: 100vh;
+                background: #0a0a0f;
+                transition: 0.3s ease-in-out;
+                z-index: 9999;
+                box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+            }
+
+            .sidebar.open { left: 0 !important; }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 80px; 
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .stats-grid, .products-grid { grid-template-columns: 1fr; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+        
+    </style>
+</head>
+<body>
+    
+    <div class="background-glow"></div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <div id="toast-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        <a href="dashboard.html" class="menu-item">Tableau de bord</a>
+        <a href="market.html" class="menu-item active">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item">Aide / Support</a>
+        <a href="settings.html" class="menu-item">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        <div class="market-header">
+            <div>
+                <h2 style="margin:0;">Le Marché Noir</h2>
+                <p style="color:#aaa; margin-top:5px;">Investissez dans du matériel haute performance.</p>
+            </div>
+            <div class="user-wallet">
+                Solde Achat : <span class="wallet-amount" id="header-balance">...</span>
+            </div>
+        </div>
+
+        <div class="products-grid" id="products-container">
+            <div style="color:#aaa;">Chargement du catalogue...</div>
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        const token = localStorage.getItem('arctic_token'); // On récupère le badge
+
+        if (!username || !token) window.location.href = 'login.html';
+
+        // --- LISTE DES IMAGES PRODUITS ---
+        const IMAGES = {
+            'miner_v1': 'https://boutique.erisay-traiteur.fr/wp-content/uploads/2015/03/glacons-e1601543034905.jpg',
+            'nitrogen_turb': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBYRpGbJgTnWfc4ugXmbavPePVIq3-BJSnZQ&s',
+            'quantum_node': 'https://cdn.oceanwide-expeditions.com/media-dynamic/cache/widen_1600/media/default/0001/08/d8ed7aa54a996dae0f3c0eb4220704c79cd540d8.jpeg',
+            'arctic_server': 'https://blog.initiatives.fr/wp-content/uploads/2012/12/iceberg2.png'
+        };
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px; animation: slideIn 0.4s forwards;`;
+            toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        async function loadMarket() {
+            try {
+                // 1. Solde
+                const userRes = await fetch('/api/user/' + username);
+                const userData = await userRes.json();
+                if (userData.success) document.getElementById('header-balance').innerText = userData.user.balance.toFixed(2) + ' €';
+
+                // 2. Produits
+                const prodRes = await fetch('/api/products');
+                const products = await prodRes.json();
+                
+                const container = document.getElementById('products-container');
+                container.innerHTML = '';
+
+                for (const [key, p] of Object.entries(products)) {
+                    // Calcul ROI
+                    const roiDays = Math.ceil(p.price / p.dailyIncome);
+                    
+                    const html = `
+                        <div class="product-card">
+                            <div class="p-image" style="background-image: url('${IMAGES[key] || 'https://via.placeholder.com/300'}');">
+                                <div class="roi-badge">ROI: ${roiDays} Jours</div>
+                            </div>
+                            <div class="p-content">
+                                <div class="p-title">${p.name}</div>
+                                <div class="p-desc">${p.desc || "Matériel de minage standard."}</div>
+                                
+                                <div class="p-stats">
+                                    <div class="stat-item">
+                                        <div class="stat-label">Prix</div>
+                                        <div class="stat-val" style="color:#a78bfa;">${p.price} €</div>
+                                    </div>
+                                    <div class="stat-item">
+                                        <div class="stat-label">Production</div>
+                                        <div class="stat-val" style="color:#4ade80;">+${p.dailyIncome} €/j</div>
+                                    </div>
+                                </div>
+
+                                <button class="buy-btn" onclick="buyItem('${key}')">ACHETER</button>
+                            </div>
+                        </div>
+                    `;
+                    container.innerHTML += html;
+                }
+            } catch (e) {
+                console.error("Erreur chargement marché:", e);
+                document.getElementById('products-container').innerHTML = "Erreur de connexion au serveur.";
+            }
+        }
+
+        async function buyItem(itemId) {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.innerText = "...";
+            btn.disabled = true;
+
+            const response = await fetch('/api/buy', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token // On montre le badge au vendeur !
+                },
+                body: JSON.stringify({ username, productId })
+            });
+            const result = await res.json();
+            
+            if (result.success) {
+                showToast(result.message, 'success');
+                loadMarket();
+            } else {
+                showToast(result.message, 'error');
+            }
+            btn.innerText = originalText;
+            btn.disabled = false;
+        }
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+
+        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+        
+        loadMarket();
+    </script>
+</body>
+</html>
