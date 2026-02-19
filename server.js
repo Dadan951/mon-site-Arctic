@@ -187,16 +187,29 @@ app.post('/api/harvest', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false, message: "Erreur" }); }
 });
 
+// CADEAU ADMIN (SÉCURISÉ)
 app.post('/api/add-money', async (req, res) => {
-    const { username, amount } = req.body;
+    const { username, amount, adminKey } = req.body;
+    
+    // Le vigile à l'entrée : on vérifie la clé !
+    if (adminKey !== ADMIN_KEY) {
+        return res.status(403).json({ success: false, message: "Accès refusé ! Tu n'es pas le Boss." });
+    }
+
     try {
         const user = await User.findOne({ username });
         if (user) {
             user.balance += amount;
             await addHistory(user, 'triche', amount, 'Cadeau Admin');
-            res.json({ success: true });
-        } else res.status(404).json({ success: false });
-    } catch (e) { res.status(500).json({ success: false }); }
+            res.json({ success: true, message: `${amount} ajoutés à ${username} !` });
+        } else {
+            res.status(404).json({ success: false, message: "Joueur introuvable." });
+        }
+    } catch (e) { 
+        res.status(500).json({ success: false }); 
+    }
 });
+
+app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur le port ${port}`));
 
 app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur http://localhost:${port}`));
