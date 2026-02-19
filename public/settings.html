@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Paramètres</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* FOND VIOLET */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 10% 90%, rgba(76, 29, 149, 0.2), transparent 40%),
+                        radial-gradient(circle at 90% 10%, rgba(124, 58, 237, 0.15), transparent 40%);
+            filter: blur(80px);
+            animation: moveAurora 15s infinite alternate;
+        }
+        @keyframes moveAurora { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* SIDEBAR */
+        .sidebar { width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        .main-content { margin-left: 270px; padding: 4rem 3rem; width: calc(100% - 270px); max-width: 1000px; }
+
+        /* SECTIONS */
+        .settings-card {
+            background: rgba(20, 20, 25, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: 2rem; margin-bottom: 2rem;
+        }
+        h3 { margin-top: 0; color: #a78bfa; margin-bottom: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 10px; }
+
+        /* AVATARS */
+        .avatar-grid { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+        .avatar-option {
+            width: 60px; height: 60px; border-radius: 50%; cursor: pointer;
+            border: 2px solid transparent; transition: 0.3s;
+            background-size: cover; background-position: center;
+        }
+        .avatar-option:hover { transform: scale(1.1); }
+        .avatar-option.selected { border-color: #4ade80; box-shadow: 0 0 15px rgba(74, 222, 128, 0.4); transform: scale(1.1); }
+
+        /* INPUTS */
+        .input-group { margin-bottom: 1.5rem; }
+        label { display: block; color: #ccc; margin-bottom: 8px; font-size: 0.9rem; }
+        input {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid #444; border-radius: 8px;
+            color: #fff; font-size: 1rem; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: #7c3aed; }
+
+        .save-btn {
+            background: linear-gradient(90deg, #7c3aed, #4c1d95); color: white; border: none;
+            padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;
+            float: right;
+        }
+        .save-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(124, 58, 237, 0.4); }
+
+        /* --- 1. CONFIGURATION DE BASE (PC) --- */
+        /* Le bouton mobile est CACHÉ sur PC */
+        .mobile-toggle { display: none; }
+
+        /* La Sidebar est FIXE à gauche sur PC */
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+            left: 0; /* Toujours collé à gauche */
+            top: 0;
+            transition: transform 0.3s ease-in-out; /* Animation fluide */
+        }
+
+        /* Le contenu est poussé à droite sur PC */
+        .main-content { 
+            margin-left: 270px; 
+            padding: 4rem 3rem; 
+            width: calc(100% - 270px); 
+        }
+
+        /* --- VERSION MOBILE --- */
+        @media screen and (max-width: 768px) {
+            .mobile-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; left: 15px;
+                z-index: 10000;
+                background: #111;
+                color: #fff;
+                border: 2px solid #7c3aed;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0; left: -100% !important;
+                width: 250px; height: 100vh;
+                background: #0a0a0f;
+                transition: 0.3s ease-in-out;
+                z-index: 9999;
+                box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+            }
+
+            .sidebar.open { left: 0 !important; }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 80px; 
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .stats-grid, .products-grid { grid-template-columns: 1fr; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        <a href="dashboard.html" class="menu-item">Tableau de bord</a>
+        <a href="market.html" class="menu-item">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item">Aide / Support</a>
+        <a href="settings.html" class="menu-item active">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        <h2 style="margin-bottom: 2rem;">Paramètres du compte</h2>
+
+        <div class="settings-card">
+            <h3>Choisir un Avatar</h3>
+            <div class="avatar-grid" id="avatar-container">
+                </div>
+            <p style="color:#666; font-size: 0.8rem;">Cliquez sur une image pour la sélectionner.</p>
+        </div>
+
+        <div class="settings-card">
+            <h3>Sécurité & Infos</h3>
+            
+            <div class="input-group">
+                <label>Adresse Email (Optionnel)</label>
+                <input type="email" id="email" placeholder="votre@email.com">
+            </div>
+
+            <div class="input-group">
+                <label>Nouveau Mot de Passe</label>
+                <input type="password" id="new-password" placeholder="Laisser vide si inchangé">
+            </div>
+
+            <button class="save-btn" onclick="saveSettings()">ENREGISTRER</button>
+            <div style="clear:both;"></div>
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        if (!username) window.location.href = 'login.html';
+
+        // Liste d'avatars stylés (Cyberpunk / Abstrait)
+        const AVATARS = [
+            'image/mario.png',
+            'image/dantes.png',
+            'image/optimus-prime.png',
+            'https://i.pinimg.com/474x/54/f4/b5/54f4b55a59ff9ddf2a2655c7f35e4356.jpg',
+            'image/yasuo.png', 
+            'image/dragon.png',
+        ];
+
+        let selectedAvatar = '';
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px; animation: slideIn 0.4s forwards;`;
+            toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        async function loadSettings() {
+            // Afficher les avatars
+            const container = document.getElementById('avatar-container');
+            AVATARS.forEach(url => {
+                const div = document.createElement('div');
+                div.className = 'avatar-option';
+                div.style.backgroundImage = `url('${url}')`;
+                div.onclick = () => selectAvatar(div, url);
+                container.appendChild(div);
+            });
+
+            // Charger les infos actuelles
+            try {
+                const res = await fetch('/api/user/' + username);
+                const data = await res.json();
+                if (data.success) {
+                    if (data.user.email) document.getElementById('email').value = data.user.email;
+                    if (data.user.avatar) {
+                        // Pré-sélectionner l'avatar actuel
+                        const existing = Array.from(document.getElementsByClassName('avatar-option')).find(d => d.style.backgroundImage.includes(data.user.avatar));
+                        if(existing) selectAvatar(existing, data.user.avatar);
+                    }
+                }
+            } catch (e) { console.error(e); }
+        }
+
+        function selectAvatar(element, url) {
+            // Retirer la classe 'selected' des autres
+            document.querySelectorAll('.avatar-option').forEach(el => el.classList.remove('selected'));
+            // Ajouter à celui cliqué
+            element.classList.add('selected');
+            selectedAvatar = url;
+        }
+
+        async function saveSettings() {
+            const email = document.getElementById('email').value;
+            const newPassword = document.getElementById('new-password').value;
+
+            const payload = { username, email, avatar: selectedAvatar };
+            if (newPassword) payload.newPassword = newPassword;
+
+            const res = await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message, 'success');
+                // Si mot de passe changé, on pourrait déconnecter, mais on laisse pour l'instant
+                document.getElementById('new-password').value = ''; // Vider le champ
+            } else {
+                showToast(data.message || "Erreur", 'error');
+            }
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+        
+        loadSettings();
+    </script>
+</body>
+</html>

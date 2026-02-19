@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Aide & Support</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- BASE --- */
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; display: flex; min-height: 100vh; overflow-x: hidden; }
+
+        /* FOND ANIMÉ */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 20% 20%, rgba(76, 29, 149, 0.2), transparent 40%),
+                        radial-gradient(circle at 80% 80%, rgba(124, 58, 237, 0.15), transparent 40%);
+            filter: blur(80px);
+            animation: moveAurora 15s infinite alternate;
+        }
+        @keyframes moveAurora { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* SIDEBAR */
+        .sidebar { width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        /* CONTENT */
+        .main-content { margin-left: 270px; padding: 4rem 3rem; width: calc(100% - 270px); }
+
+        /* CONTACT HEADER */
+        .support-header { text-align: center; margin-bottom: 3rem; }
+        .support-header h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        .support-header p { color: #aaa; margin-bottom: 30px; }
+
+        /* NOUVELLE SECTION DE CONTACT (Cliquable) */
+        .contact-methods {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-bottom: 50px;
+            flex-wrap: wrap;
+        }
+
+        /* Le style 'a' rend la carte cliquable */
+        .contact-card {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            padding: 20px;
+            width: 300px;
+            text-align: left;
+            display: flex;
+            align-items: center; /* Centré verticalement */
+            gap: 15px;
+            transition: 0.3s;
+            text-decoration: none; /* Enlève le soulignement du lien */
+            cursor: pointer;
+        }
+
+        .contact-card:hover {
+            background: rgba(124, 58, 237, 0.1);
+            border-color: #7c3aed;
+            transform: translateY(-5px); /* Petit effet de saut */
+        }
+
+        .contact-icon svg {
+            width: 45px;
+            height: 45px;
+            fill: #a78bfa; /* Couleur violette Arctic */
+            transition: 0.3s;
+        }
+        
+        .contact-card:hover .contact-icon svg {
+            fill: #fff; /* Devient blanc au survol */
+        }
+
+        .contact-info h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+
+        .contact-info p {
+            margin: 0;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        /* FAQ SECTION */
+        .faq-container { max-width: 800px; margin: 0 auto; }
+        
+        details {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            margin-bottom: 15px;
+            padding: 20px;
+            transition: 0.3s;
+            overflow: hidden;
+        }
+
+        details[open] {
+            border-color: #7c3aed;
+            background: rgba(124, 58, 237, 0.05);
+        }
+
+        summary {
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            list-style: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fff;
+        }
+        
+        summary::-webkit-details-marker { display: none; }
+        
+        summary::after {
+            content: '+';
+            font-size: 1.5rem;
+            color: #7c3aed;
+            font-weight: 300;
+            transition: 0.3s;
+        }
+
+        details[open] summary::after {
+            content: '-';
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            color: #aaa;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* MOBILE */
+        .mobile-toggle { display: none; }
+        @media screen and (max-width: 768px) {
+            .mobile-toggle { display: block !important; position: fixed; top: 15px; left: 15px; z-index: 10000; background: #111; color: #fff; border: 2px solid #7c3aed; padding: 10px 15px; border-radius: 8px; font-size: 1.5rem; cursor: pointer; }
+            .sidebar { position: fixed; top: 0; left: -100% !important; width: 250px; height: 100vh; background: #0a0a0f; transition: 0.3s ease-in-out; z-index: 9999; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+            .sidebar.open { left: 0 !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding-top: 80px; padding-left: 20px; padding-right: 20px; }
+            .sidebar .logo { margin-top: 50px; }
+            .contact-methods { gap: 10px; }
+            .contact-card { width: 100%; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        <a href="dashboard.html" class="menu-item">Tableau de bord</a>
+        <a href="market.html" class="menu-item">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item active">Aide / Support</a>
+        <a href="settings.html" class="menu-item">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        
+        <div class="support-header">
+            <h2>Centre d'Aide</h2>
+            <p>Une question ? Un problème ? Notre équipe est là pour vous.</p>
+        </div>
+
+        <div class="contact-methods">
+            
+            <a href="mailto:support@arctic-app.com" class="contact-card">
+                <div class="contact-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                    </svg>
+                </div>
+                <div class="contact-info">
+                    <h4>Email</h4>
+                    <p>support@arctic-app.com</p>
+                </div>
+            </a>
+
+            <a href="https://t.me/ArcticOfficial" target="_blank" class="contact-card">
+                <div class="contact-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                    </svg>
+                </div>
+                <div class="contact-info">
+                    <h4>Telegram</h4>
+                    <p>@ArcticOfficial</p>
+                </div>
+            </a>
+
+        </div>
+
+        <h3 style="text-align: center; margin-bottom: 30px; margin-top: 30px; color: #a78bfa;">QUESTIONS FRÉQUENTES (FAQ)</h3>
+
+        <div class="faq-container">
+            
+            <details>
+                <summary>Comment fonctionne le système de parrainage ?</summary>
+                <div class="faq-answer">
+                    Le système de parrainage Arctic est conçu pour récompenser votre réseau. Lorsque vous invitez des amis (filleuls) à rejoindre la plateforme via votre code unique :
+                    <br><br>
+                    1. <strong>Vous gagnez un pourcentage</strong> sur tous les bénéfices minés par vos filleuls, chaque jour.
+                    <br>
+                    2. Plus vos filleuls investissent dans du matériel puissant, plus vos commissions augmentent automatiquement.
+                    <br>
+                    3. Ces gains sont crédités directement sur votre solde retirable et vous aident à monter en grade VIP.
+                </div>
+            </details>
+
+            <details>
+                <summary>Quel est le montant minimum de retrait ?</summary>
+                <div class="faq-answer">
+                    Le montant minimum pour effectuer un retrait est fixé à <strong>20,00 €</strong>. Cette limite permet de garantir la stabilité du réseau et de couvrir les frais de transaction blockchain.
+                </div>
+            </details>
+
+            <details>
+                <summary>Comment acheter du matériel ?</summary>
+                <div class="faq-answer">
+                    Rendez-vous dans la section "Marché". Utilisez votre "Solde Achat" pour acquérir de nouvelles machines. Dès l'achat, la machine s'active et commence à générer des revenus visibles dans votre tableau de bord.
+                </div>
+            </details>
+
+            <details>
+                <summary>Combien de temps prend un dépôt ?</summary>
+                <div class="faq-answer">
+                    Les dépôts en crypto-monnaie (USDT TRC20) sont généralement validés automatiquement par le réseau en quelques minutes. Cependant, selon la congestion de la blockchain, cela peut prendre jusqu'à 1 heure.
+                </div>
+            </details>
+
+        </div>
+
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        if (!username) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function logout() {
+            localStorage.removeItem('arctic_user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

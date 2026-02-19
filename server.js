@@ -1,0 +1,201 @@
+const express = require('express');
+const cors = require('cors');
+const path = require('path');
+const mongoose = require('mongoose');
+
+const app = express();
+const port = process.env.PORT || 3000;
+const ADMIN_KEY = "ARCTIC_BOSS"; 
+
+const MONGO_URI = "mongodb+srv://admin:arctic@cluster0.qzlfxkz.mongodb.net/arcticDB?retryWrites=true&w=majority"; 
+
+// On ajoute l'option "family: 4" pour forcer la connexion et éviter le bug DNS
+mongoose.connect(MONGO_URI, {
+    family: 4
+})
+.then(() => console.log("✅ Connecté à MongoDB Atlas avec succès !"))
+.catch(err => console.error("❌ Erreur MongoDB:", err));
+
+app.use(express.json());
+app.use(express.static('public'));
+app.use(cors());
+
+// --- SCHÉMA UTILISATEUR ---
+const userSchema = new mongoose.Schema({
+    username: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    balance: { type: Number, default: 0.00 },
+    withdrawalBalance: { type: Number, default: 0.00 },
+    referralCode: String,
+    referredBy: String,
+    avatar: String,
+    email: String,
+    inventory: { type: Map, of: Number, default: {} },
+    history: { type: Array, default: [] },
+    deposits: { type: Array, default: [] },
+    lastCollection: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now }
+});
+
+const User = mongoose.model('User', userSchema);
+
+// --- CONFIGURATION ---
+const VIP_LEVELS = [
+    { level: 1, required: 0,  fee: 0.10, miningBonus: 1.00 },
+    { level: 2, required: 2,  fee: 0.08, miningBonus: 1.05 },
+    { level: 3, required: 5,  fee: 0.06, miningBonus: 1.10 },
+    { level: 4, required: 10, fee: 0.05, miningBonus: 1.20 },
+    { level: 5, required: 30, fee: 0.03, miningBonus: 1.50 }
+];
+
+const PRODUCTS = {
+    'miner_v1': { name: "Module Cryogénique Alpha", price: 20, dailyIncome: 5, desc: "Refroidissement de base." },
+    'nitrogen_turb': { name: "Turbine à Azote Liquide", price: 50, dailyIncome: 12.50, desc: "Flux constant haute pression." },
+    'quantum_node': { name: "Processeur Polaire Quantique", price: 100, dailyIncome: 30, desc: "Technologie zéro absolu." },
+    'arctic_server': { name: "Data Center Glaciaire Omega", price: 500, dailyIncome: 180, desc: "Infrastructure ultime." }
+};
+
+// --- FONCTIONS ---
+const calculateVip = async (user) => {
+    const count = await User.countDocuments({ referredBy: user.referralCode });
+    let currentVip = VIP_LEVELS[0];
+    for (let i = VIP_LEVELS.length - 1; i >= 0; i--) {
+        if (count >= VIP_LEVELS[i].required) { currentVip = VIP_LEVELS[i]; break; }
+    }
+    return { ...currentVip, referralCount: count };
+};
+
+const addHistory = async (user, type, amount, desc) => {
+    user.history.unshift({ type, amount, desc, date: new Date() });
+    if (user.history.length > 20) user.history.pop();
+    await user.save();
+};
+
+// --- ROUTES ---
+
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/api/products', (req, res) => res.json(PRODUCTS));
+
+// INSCRIPTION
+app.post('/api/register', async (req, res) => {
+    const { username, password, referralCode } = req.body;
+    try {
+        const existing = await User.findOne({ username });
+        if (existing) return res.status(400).json({ error: "Pseudo pris !" });
+
+        const newUser = new User({
+            username, password,
+            referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+            referredBy: referralCode || null
+        });
+        
+        newUser.history.push({ type: 'info', amount: 0, desc: 'Bienvenue sur Arctic !', date: new Date() });
+        await newUser.save();
+        
+        res.status(201).json({ success: true, user: newUser });
+    } catch (e) { res.status(500).json({ error: "Erreur serveur" }); }
+});
+
+// CONNEXION
+app.post('/api/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await User.findOne({ username, password });
+        if (user) res.json({ success: true, user });
+        else res.status(401).json({ success: false, message: "Erreur identifiants" });
+    } catch (e) { res.status(500).json({ error: "Erreur serveur" }); }
+});
+
+// INFO USER
+app.get('/api/user/:username', async (req, res) => {
+    try {
+        const user = await User.findOne({ username: req.params.username });
+        if (user) {
+            const vipStatus = await calculateVip(user);
+            let baseDaily = 0;
+            if (user.inventory) {
+                for (const [itemId, count] of user.inventory.entries()) {
+                    if (PRODUCTS[itemId]) baseDaily += PRODUCTS[itemId].dailyIncome * count;
+                }
+            }
+            const myReferrals = await User.find({ referredBy: user.referralCode });
+            const referralsList = myReferrals.map(filleul => {
+                const earnings = user.history
+                    .filter(h => h.type === 'parrainage' && h.desc.includes(filleul.username))
+                    .reduce((sum, h) => sum + h.amount, 0);
+                return { username: filleul.username, earnings };
+            });
+
+            res.json({ success: true, user, vipStatus, totalDaily: baseDaily * vipStatus.miningBonus, referrals: referralsList });
+        } else res.status(404).json({ success: false });
+    } catch (e) { res.status(500).json({ success: false }); }
+});
+
+// ACHAT
+app.post('/api/buy', async (req, res) => {
+    const { username, itemId } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        const product = PRODUCTS[itemId];
+        if (!user || !product) return res.status(404).json({ success: false });
+
+        if (user.balance >= product.price) {
+            user.balance -= product.price;
+            const currentCount = user.inventory.get(itemId) || 0;
+            user.inventory.set(itemId, currentCount + 1);
+            await addHistory(user, 'achat', -product.price, `Achat : ${product.name}`);
+            res.json({ success: true, message: `Achat réussi` });
+        } else res.json({ success: false, message: "Solde insuffisant !" });
+    } catch (e) { res.status(500).json({ success: false }); }
+});
+
+// RÉCOLTE
+app.post('/api/harvest', async (req, res) => {
+    const { username } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false });
+
+        const vipStatus = await calculateVip(user);
+        let baseDaily = 0;
+        if (user.inventory) {
+            for (const [k, v] of user.inventory.entries()) if (PRODUCTS[k]) baseDaily += PRODUCTS[k].dailyIncome * v;
+        }
+
+        const now = new Date();
+        const lastCollection = new Date(user.lastCollection || user.createdAt);
+        const diff = (now - lastCollection) / 1000;
+
+        if (diff < 10) return res.json({ success: false, message: "Patience..." });
+
+        const gain = (baseDaily * vipStatus.miningBonus / 86400) * diff;
+        user.withdrawalBalance = (user.withdrawalBalance || 0) + gain;
+        user.lastCollection = now;
+        await addHistory(user, 'recolte', gain, 'Récolte Minage');
+
+        if (user.referredBy) {
+            const parrain = await User.findOne({ referralCode: user.referredBy });
+            if (parrain) {
+                const bonus = gain * 0.05;
+                parrain.withdrawalBalance = (parrain.withdrawalBalance || 0) + bonus;
+                await addHistory(parrain, 'parrainage', bonus, `Bonus affilié: ${user.username}`);
+            }
+        }
+        await user.save();
+        res.json({ success: true, message: "Récolté !" });
+    } catch (e) { res.status(500).json({ success: false, message: "Erreur" }); }
+});
+
+app.post('/api/add-money', async (req, res) => {
+    const { username, amount } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        if (user) {
+            user.balance += amount;
+            await addHistory(user, 'triche', amount, 'Cadeau Admin');
+            res.json({ success: true });
+        } else res.status(404).json({ success: false });
+    } catch (e) { res.status(500).json({ success: false }); }
+});
+
+app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur http://localhost:${port}`));

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Parrainage VIP</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- RESET & BASE --- */
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #fff;
+            margin: 0;
+            display: flex;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* --- ARRIÈRE-PLAN ANIMÉ (L'effet "Violet" demandé) --- */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: 
+                radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.1), transparent 25%);
+            filter: blur(60px);
+            animation: moveAurora 15s infinite alternate;
+        }
+        @keyframes moveAurora {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.1); opacity: 1; }
+        }
+
+        /* --- SIDEBAR --- */
+        .sidebar { width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        /* --- CONTENT --- */
+        .main-content { margin-left: 270px; padding: 5rem 3rem 3rem 1.5rem; width: calc(100% - 270px); }
+        
+        h2 { font-weight: 300; margin-bottom: 1rem; }
+        p.subtitle { color: #aaa; margin-bottom: 3rem; max-width: 600px; line-height: 1.6; }
+
+        /* --- MON CODE PARRAIN --- */
+        .my-code-card {
+            background: linear-gradient(45deg, rgba(76, 29, 149, 0.2), rgba(20, 20, 25, 0.8));
+            border: 1px solid #7c3aed;
+            padding: 2rem; border-radius: 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 30px rgba(124, 58, 237, 0.1);
+        }
+        .code-box { font-size: 2.5rem; font-weight: 800; letter-spacing: 5px; color: #fff; text-shadow: 0 0 15px rgba(139, 92, 246, 0.5); }
+        .share-btn { background: #fff; color: #4c1d95; border: none; padding: 10px 20px; border-radius: 30px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .share-btn:hover { background: #d8b4fe; transform: scale(1.05); }
+
+        /* --- TABLEAU VIP --- */
+        .vip-table-container {
+            background: rgba(20, 20, 25, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            overflow: hidden;
+        }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 1.5rem; color: #a1a1aa; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        td { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
+        tr:last-child td { border-bottom: none; }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        .vip-tag { padding: 5px 12px; border-radius: 15px; font-size: 0.8rem; font-weight: bold; display: inline-block; }
+        .vip-1 { background: #333; color: #aaa; border: 1px solid #555; }
+        .vip-2 { background: rgba(30, 58, 138, 0.5); color: #93c5fd; border: 1px solid #3b82f6; }
+        .vip-3 { background: rgba(76, 29, 149, 0.5); color: #c4b5fd; border: 1px solid #8b5cf6; }
+        .vip-4 { background: linear-gradient(45deg, rgba(185, 28, 28, 0.4), rgba(239, 68, 68, 0.4)); color: #fca5a5; border: 1px solid #ef4444; }
+        .vip-5 { background: linear-gradient(45deg, rgba(251, 191, 36, 0.2), rgba(217, 119, 6, 0.2)); color: #fbbf24; border: 1px solid #fbbf24; box-shadow: 0 0 10px rgba(251, 191, 36, 0.1); }
+
+        .bonus-text { color: #4ade80; font-weight: bold; }
+        .fee-text { color: #f87171; }
+        .current-row { background: rgba(124, 58, 237, 0.1); border-left: 4px solid #7c3aed; }
+        
+        /* --- 1. CONFIGURATION DE BASE (PC) --- */
+        /* Le bouton mobile est CACHÉ sur PC */
+        .mobile-toggle { display: none; }
+
+        /* La Sidebar est FIXE à gauche sur PC */
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+            left: 0; /* Toujours collé à gauche */
+            top: 0;
+            transition: transform 0.3s ease-in-out; /* Animation fluide */
+        }
+
+        /* Le contenu est poussé à droite sur PC */
+        .main-content { 
+            margin-left: 270px; 
+            padding: 4rem 3rem; 
+            width: calc(100% - 270px); 
+        }
+
+        /* --- VERSION MOBILE --- */
+        @media screen and (max-width: 768px) {
+            
+            /* LE BOUTON */
+            .mobile-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; left: 15px;
+                z-index: 10000;
+                background: #111;
+                color: #fff;
+                border: 2px solid #7c3aed;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            /* LA SIDEBAR (Cachée par défaut) */
+            .sidebar {
+                position: fixed;
+                top: 0; left: -100% !important;
+                width: 250px; height: 100vh;
+                background: #0a0a0f;
+                transition: 0.3s ease-in-out;
+                z-index: 9999;
+                box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+            }
+
+            /* QUAND ON CLIQUE */
+            .sidebar.open { left: 0 !important; }
+
+            /* LE CONTENU */
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 80px; /* Place pour le bouton */
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            /* Ajustement Grilles */
+            .stats-grid, .products-grid { grid-template-columns: 1fr; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        
+        <a href="dashboard.html" class="menu-item">Tableau de bord</a>
+        <a href="market.html" class="menu-item">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item">Aide / Support</a>
+        <a href="settings.html" class="menu-item">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        <h2>Espace Partenaire & VIP</h2>
+        <p class="subtitle">Augmentez vos revenus en bâtissant votre réseau. Plus vous invitez de membres, plus vos avantages se multiplient.</p>
+
+        <div class="my-code-card">
+            <div>
+                <div style="font-size: 0.9rem; color: #ccc; margin-bottom: 5px;">Votre Code Unique</div>
+                <div class="code-box" id="my-code">...</div>
+            </div>
+            <button class="share-btn" onclick="copyCode()">Copier le code</button>
+        </div>
+
+        <h3 style="margin-bottom: 1.5rem;">Grille des Avantages VIP</h3>
+        <div class="vip-table-container">
+            <table>
+                <thead>
+                    <tr>
+                        <th>NIVEAU</th>
+                        <th>CONDITION</th>
+                        <th>BONUS FILLEULS</th>
+                        <th>FRAIS RETRAIT</th>
+                    </tr>
+                </thead>
+                <tbody id="vip-table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        if (!username) window.location.href = 'login.html';
+
+        // Définition des niveaux (doit correspondre au serveur)
+        const VIP_LEVELS = [
+            { level: 1, required: 0, fee: "10%", bonus: "+0%" },
+            { level: 2, required: 2, fee: "8%", bonus: "+5%" },
+            { level: 3, required: 5, fee: "6%", bonus: "+7%" },
+            { level: 4, required: 10, fee: "5%", bonus: "+10%" },
+            { level: 5, required: 30, fee: "3%", bonus: "+15%" }
+        ];
+
+        async function loadReferralData() {
+            // On récupère les infos du joueur pour savoir quel rang il a
+            const response = await fetch('/api/user/' + username);
+            const data = await response.json();
+
+            if (data.success) {
+                const user = data.user;
+                const myVipLevel = data.vipStatus.level;
+
+                // Afficher le code
+                document.getElementById('my-code').innerText = user.referralCode;
+
+                // Remplir le tableau
+                const tbody = document.getElementById('vip-table-body');
+                tbody.innerHTML = '';
+
+                VIP_LEVELS.forEach(vip => {
+                    const isCurrent = vip.level === myVipLevel ? 'current-row' : '';
+                    const conditionText = vip.level === 1 ? "Aucune" : `${vip.required} Filleuls`;
+                    
+                    const row = `
+                        <tr class="${isCurrent}">
+                            <td><span class="vip-tag vip-${vip.level}">VIP ${vip.level}</span></td>
+                            <td style="color: #ddd;">${conditionText}</td>
+                            <td class="bonus-text">${vip.bonus}</td>
+                            <td class="fee-text">${vip.fee}</td>
+                        </tr>
+                    `;
+                    tbody.innerHTML += row;
+                });
+            }
+        }
+
+        function copyCode() {
+            const code = document.getElementById('my-code').innerText;
+            navigator.clipboard.writeText(code);
+            alert("Code copié ! Partagez-le avec vos amis.");
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function logout() {
+            localStorage.removeItem('arctic_user'); // On supprime la session
+            window.location.href = 'index.html';    // On redirige vers l'ACCUEIL (au lieu de login.html)
+        }
+
+        loadReferralData();
+    </script>
+</body>
+</html>

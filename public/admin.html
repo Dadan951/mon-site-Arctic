@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | ADMINISTRATION</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- BASE --- */
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+        /* FOND VIOLET ANIMÉ */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 50% 10%, rgba(76, 29, 149, 0.3), transparent 40%),
+                        radial-gradient(circle at 90% 90%, rgba(124, 58, 237, 0.2), transparent 40%);
+            filter: blur(80px);
+            animation: moveAurora 20s infinite alternate;
+        }
+        @keyframes moveAurora { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* HEADER */
+        .admin-header {
+            width: 100%; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center;
+            background: rgba(20, 20, 25, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        
+        .logout-btn {
+            background: rgba(220, 38, 38, 0.2); color: #fca5a5; border: 1px solid #ef4444;
+            padding: 8px 15px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .logout-btn:hover { background: rgba(220, 38, 38, 0.4); }
+
+        /* LOGIN BOX (Style identique au site) */
+        .login-wrapper {
+            display: flex; height: 80vh; align-items: center; justify-content: center; width: 100%;
+        }
+        .login-box {
+            background: rgba(20, 20, 25, 0.9); padding: 2.5rem; border-radius: 20px;
+            backdrop-filter: blur(20px); border: 1px solid rgba(124, 58, 237, 0.3);
+            width: 350px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .login-input {
+            width: 100%; padding: 12px 15px; margin: 15px 0;
+            background: #0a0a0a; border: 1px solid #333; color: #fff;
+            border-radius: 8px; outline: none; transition: 0.3s; font-family: 'Inter', sans-serif;
+        }
+        .login-input:focus { border-color: #7c3aed; box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.2); }
+        .login-btn {
+            width: 100%; padding: 12px; background: linear-gradient(90deg, #4c1d95, #6d28d9);
+            color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.3s;
+        }
+        .login-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(109, 40, 217, 0.4); }
+
+        /* TABLEAU DE BORD ADMIN */
+        .admin-content { width: 95%; max-width: 1200px; margin-top: 40px; display: none; } /* Caché par défaut */
+        
+        .card {
+            background: rgba(20, 20, 25, 0.6); border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 20px; padding: 2rem; overflow: hidden;
+        }
+
+        .refresh-btn {
+            background: rgba(124, 58, 237, 0.2); color: #fff; border: 1px solid #7c3aed;
+            padding: 10px 20px; border-radius: 8px; cursor: pointer; margin-bottom: 20px; font-weight: bold;
+        }
+        .refresh-btn:hover { background: rgba(124, 58, 237, 0.4); }
+
+        /* TABLE DESIGN */
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; }
+        
+        th { 
+            text-align: left; padding: 15px; color: #a1a1aa; font-size: 0.85rem; text-transform: uppercase; 
+            border-bottom: 1px solid rgba(255,255,255,0.1); 
+        }
+        td { 
+            padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); color: #fff; vertical-align: middle;
+        }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* BADGES & BUTTONS */
+        /* --- COULEURS DES BADGES VIP --- */
+        .badge-vip { 
+            padding: 4px 10px; 
+            border-radius: 15px; 
+            font-size: 0.75rem; 
+            font-weight: 800; 
+            text-transform: uppercase;
+            border: 1px solid transparent;
+            display: inline-block;
+        }
+
+        /* VIP 1 : Gris */
+        .vip-1 { background: #2a2a2a; color: #aaaaaa; border-color: #444; }
+
+        /* VIP 2 : Bleu */
+        .vip-2 { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border-color: #3b82f6; }
+
+        /* VIP 3 : Violet */
+        .vip-3 { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border-color: #8b5cf6; }
+
+        /* VIP 4 : Rouge */
+        .vip-4 { background: #b91c1c; color: #fff; border-color: #ef4444; }
+
+        /* VIP 5 : Or */
+        .vip-5 { 
+            background: rgba(251, 191, 36, 0.1); 
+            color: #fbbf24; 
+            border-color: #fbbf24;
+            box-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
+        }
+
+        .action-btn {
+            padding: 6px 12px; border-radius: 6px; border: none; cursor: pointer; 
+            font-size: 0.8rem; font-weight: bold; margin-right: 5px; transition: 0.2s;
+        }
+        .btn-add { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
+        .btn-add:hover { background: rgba(16, 185, 129, 0.4); }
+        
+        .btn-wdr { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid #2563eb; }
+        .btn-wdr:hover { background: rgba(59, 130, 246, 0.4); }
+
+        .btn-ban { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
+        .btn-ban:hover { background: rgba(239, 68, 68, 0.4); }
+
+        /* --- 1. CONFIGURATION DE BASE (PC) --- */
+        /* Le bouton mobile est CACHÉ sur PC */
+        .mobile-toggle { display: none; }
+
+        /* La Sidebar est FIXE à gauche sur PC */
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+            left: 0; /* Toujours collé à gauche */
+            top: 0;
+            transition: transform 0.3s ease-in-out; /* Animation fluide */
+        }
+
+        /* Le contenu est poussé à droite sur PC */
+        .main-content { 
+            margin-left: 270px; 
+            padding: 4rem 3rem; 
+            width: calc(100% - 270px); 
+        }
+
+        /* --- VERSION MOBILE --- */
+        @media screen and (max-width: 768px) {
+            
+            /* LE BOUTON */
+            .mobile-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; left: 15px;
+                z-index: 10000;
+                background: #111;
+                color: #fff;
+                border: 2px solid #7c3aed;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            /* LA SIDEBAR (Cachée par défaut) */
+            .sidebar {
+                position: fixed;
+                top: 0; left: -100% !important;
+                width: 250px; height: 100vh;
+                background: #0a0a0f;
+                transition: 0.3s ease-in-out;
+                z-index: 9999;
+                box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+            }
+
+            /* QUAND ON CLIQUE */
+            .sidebar.open { left: 0 !important; }
+
+            /* LE CONTENU */
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 80px; /* Place pour le bouton */
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            /* Ajustement Grilles */
+            .stats-grid, .products-grid { grid-template-columns: 1fr; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <div id="login-screen" class="login-wrapper">
+        <div class="login-box">
+            <h2 style="margin-bottom: 5px;">Portail Admin</h2>
+            <p style="color: #aaa; font-size: 0.9rem; margin-bottom: 20px;">Accès sécurisé Arctic</p>
+            
+            <input type="password" id="admin-key" class="login-input" placeholder="Clé de sécurité ">
+            <button onclick="login()" class="login-btn">Accéder au Panneau</button>
+        </div>
+    </div>
+
+    <div id="admin-panel" style="width: 100%; display: none;">
+        
+        <div class="admin-header">
+            <div class="logo">ARCTIC <span style="font-size: 0.8rem; color: #aaa; letter-spacing: 0;">| Admin</span></div>
+            <button onclick="logout()" class="logout-btn">Déconnexion</button>
+        </div>
+
+        <div class="admin-content" style="display: block; margin: 40px auto;">
+            <div class="card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3 style="margin: 0;">Gestion des Utilisateurs</h3>
+                    <button onclick="loadUsers()" class="refresh-btn">🔄 Actualiser</button>
+                </div>
+
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Joueur</th>
+                                <th>Mot de Passe</th>
+                                <th>Solde Achat</th>
+                                <th>Solde Retrait</th>
+                                <th>Niveau</th>
+                                <th>Parrain</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-table">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // On vérifie si l'admin est déjà connecté
+        let SECRET_KEY = localStorage.getItem('arctic_admin_key') || "";
+
+        async function login() {
+            const key = document.getElementById('admin-key').value;
+            
+            // Petit effet de chargement
+            const btn = document.querySelector('.login-btn');
+            const originalText = btn.innerText;
+            btn.innerText = "Vérification...";
+
+            try {
+                const res = await fetch('/api/admin/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key })
+                });
+                const data = await res.json();
+                
+                if(data.success) {
+                    SECRET_KEY = key;
+                    localStorage.setItem('arctic_admin_key', key);
+                    toggleInterface(true);
+                    loadUsers();
+                } else {
+                    alert("⛔ Clé incorrecte !");
+                    btn.innerText = originalText;
+                }
+            } catch (e) {
+                alert("Erreur serveur");
+                btn.innerText = originalText;
+            }
+        }
+
+        function toggleInterface(showAdmin) {
+            if (showAdmin) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('admin-panel').style.display = 'block';
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('admin-panel').style.display = 'none';
+            }
+        }
+
+        async function loadUsers() {
+            const res = await fetch('/api/admin/users?key=' + SECRET_KEY);
+            const data = await res.json();
+            
+            const tbody = document.getElementById('users-table');
+            tbody.innerHTML = '';
+
+            // Zone des dépôts en attente (Ajouté en haut du tableau)
+            let pendingDepositsHTML = '';
+            
+            data.users.forEach(u => {
+                // Vérifier s'il y a des dépôts en attente
+                if(u.deposits) {
+                    u.deposits.forEach(d => {
+                        if(d.status === 'pending') {
+                            pendingDepositsHTML += `
+                                <div style="background:#222; padding:10px; margin-bottom:10px; border:1px solid #7c3aed; border-radius:5px; display:flex; justify-content:space-between; align-items:center;">
+                                    <span>
+                                        <strong style="color:#fff;">${u.username}</strong> a envoyé 
+                                        <strong style="color:#4ade80;">${d.amount} USDT</strong>
+                                        <br><span style="font-size:0.8rem; color:#aaa;">TXID: ${d.txid}</span>
+                                    </span>
+                                    <div>
+                                        <button onclick="approveDeposit('${u.username}', ${d.id}, 'approve')" style="background:green; color:white; border:none; padding:5px 10px; cursor:pointer;">Valider</button>
+                                        <button onclick="approveDeposit('${u.username}', ${d.id}, 'reject')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">Refuser</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
+                // Remplissage tableau users classique (comme avant)
+                // ... (Garde ton code existant pour le tableau ici) ...
+                 const html = `
+                    <tr>
+                        <td style="font-weight:bold; color:white;">${u.username}</td>
+                        <td style="color:#555;">${u.password}</td>
+                        <td style="color:#a78bfa;">${u.balance.toFixed(2)} €</td>
+                        <td style="color:#4ade80;">${u.withdrawalBalance.toFixed(2)} €</td>
+                        <td>VIP ${u.vip}</td>
+                        <td>${u.referredBy || '-'}</td>
+                        <td>...</td> 
+                    </tr>
+                `;
+                tbody.innerHTML += html;
+            });
+
+            // Insérer la zone de dépôts AVANT le tableau
+            const existingAlert = document.getElementById('pending-alerts');
+            if(existingAlert) existingAlert.remove();
+            
+            if(pendingDepositsHTML) {
+                const alertBox = document.createElement('div');
+                alertBox.id = 'pending-alerts';
+                alertBox.innerHTML = '<h3 style="color:#4ade80;">💰 Dépôts en attente :</h3>' + pendingDepositsHTML;
+                document.querySelector('.card').prepend(alertBox);
+            }
+        }
+
+        async function approveDeposit(username, depositId, action) {
+            if(!confirm(action === 'approve' ? "Valider ce dépôt ?" : "Refuser ?")) return;
+            
+            await fetch('/api/admin/approve-deposit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: SECRET_KEY, username, depositId, action })
+            });
+            loadUsers(); // Rafraîchir
+        }
+
+        async function action(type, username) {
+            let amount = 0;
+            if(type.includes('add')) {
+                amount = prompt("Montant à créditer (€) :");
+                if(!amount) return;
+            } else {
+                if(!confirm("⚠️ ATTENTION : Voulez-vous vraiment supprimer définitivement l'utilisateur " + username + " ?")) return;
+            }
+
+            const res = await fetch('/api/admin/action', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: SECRET_KEY, action: type, username, amount })
+            });
+            const data = await res.json();
+            if(data.success) loadUsers();
+            else alert("Erreur lors de l'action");
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function logout() {
+            localStorage.removeItem('arctic_admin_key');
+            location.reload();
+        }
+
+        // Connexion auto si la clé est déjà en mémoire
+        if(SECRET_KEY) {
+            toggleInterface(true);
+            loadUsers();
+        } else {
+            toggleInterface(false);
+        }
+    </script>
+</body>
+</html>

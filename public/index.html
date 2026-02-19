@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCTIC | L'Avenir du Revenu Passif</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;800&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- RESET & BASE --- */
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #050505;
+            color: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* --- ARRIÈRE-PLAN ANIMÉ --- */
+        .background-glow {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100vh;
+            z-index: -1;
+            background: 
+                radial-gradient(circle at 10% 20%, rgba(76, 29, 149, 0.2), transparent 40%),
+                radial-gradient(circle at 90% 80%, rgba(124, 58, 237, 0.15), transparent 40%);
+            filter: blur(60px);
+            animation: moveAurora 20s infinite alternate;
+        }
+        @keyframes moveAurora {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.1); }
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1.5rem 5%; position: fixed; width: 100%; top: 0;
+            backdrop-filter: blur(15px); background: rgba(5, 5, 5, 0.6);
+            z-index: 100; border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .logo {
+            font-weight: 800; font-size: 1.5rem; letter-spacing: 3px;
+            background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        .nav-btn {
+            background: transparent; border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; padding: 0.6rem 1.2rem; border-radius: 30px;
+            cursor: pointer; transition: 0.3s; font-size: 0.9rem;
+        }
+        .nav-btn:hover { border-color: #8b5cf6; background: rgba(139, 92, 246, 0.1); }
+
+        /* --- HERO SECTION (L'écran principal) --- */
+        .hero {
+            height: 100vh; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 0 20px; position: relative;
+        }
+
+        h1 {
+            font-size: clamp(3rem, 7vw, 5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem;
+            background: linear-gradient(180deg, #ffffff 0%, #7c3aed 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            animation: fadeInUp 1s ease-out forwards; opacity: 0;
+        }
+
+        p.subtitle {
+            font-size: 1.2rem; color: #a1a1aa; max-width: 600px; font-weight: 300; margin-bottom: 3rem;
+            animation: fadeInUp 1s ease-out forwards 0.3s; opacity: 0;
+        }
+
+        .cta-btn {
+            padding: 1rem 3rem; font-size: 1.1rem; font-weight: 600; color: white;
+            background: linear-gradient(90deg, #4c1d95, #7c3aed);
+            border: none; border-radius: 50px; cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+            animation: fadeInUp 1s ease-out forwards 0.6s; opacity: 0;
+            box-shadow: 0 10px 30px -5px rgba(124, 58, 237, 0.4);
+        }
+        .cta-btn:hover { transform: translateY(-5px); box-shadow: 0 20px 40px -10px rgba(124, 58, 237, 0.6); }
+
+        .scroll-indicator {
+            position: absolute; bottom: 30px; animation: bounce 2s infinite; opacity: 0.5;
+        }
+
+        /* --- SECTIONS DE CONTENU --- */
+        .section { padding: 6rem 5%; max-width: 1200px; margin: 0 auto; }
+        .section-title {
+            font-size: 2.5rem; font-weight: 800; margin-bottom: 3rem; text-align: center;
+            background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+
+        /* GRID CARDS */
+        .features-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 2rem; border-radius: 20px; transition: 0.3s;
+        }
+        .feature-card:hover { transform: translateY(-10px); border-color: #7c3aed; background: rgba(255, 255, 255, 0.05); }
+        .feature-icon { font-size: 2rem; margin-bottom: 1rem; }
+        .feature-title { font-size: 1.3rem; font-weight: 600; margin-bottom: 1rem; color: #fff; }
+        .feature-desc { color: #a1a1aa; line-height: 1.6; }
+
+        /* VIP SECTION */
+        .vip-preview {
+            display: flex; align-items: center; justify-content: space-between;
+            background: linear-gradient(45deg, rgba(20, 20, 25, 0.8), rgba(76, 29, 149, 0.2));
+            border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 30px;
+            padding: 3rem; margin-top: 4rem; flex-wrap: wrap; gap: 2rem;
+        }
+        .vip-text { flex: 1; min-width: 300px; }
+        .vip-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: center; }
+        /* --- NOUVEAUX STYLES DES TAGS VIP --- */
+        .vip-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: center; }
+        
+        /* Style de base pour tous les tags */
+        .tag { 
+            padding: 8px 15px; 
+            border-radius: 20px; 
+            font-size: 0.9rem; 
+            font-weight: 800; 
+            border: 1px solid transparent; /* Bordure transparente par défaut */
+            transition: 0.3s;
+        }
+
+        /* VIP 1 : Gris */
+        .tag-v1 {
+            background: rgba(255, 255, 255, 0.1);
+            color: #ccc;
+            border-color: #555;
+        }
+
+        /* VIP 2 : Bleu */
+        .tag-v2 {
+            background: rgba(37, 99, 235, 0.2);
+            color: #60a5fa;
+            border-color: #3b82f6;
+        }
+
+        /* VIP 3 : Violet (Arctic) */
+        .tag-v3 {
+            background: rgba(124, 58, 237, 0.2);
+            color: #c4b5fd;
+            border-color: #8b5cf6;
+        }
+
+        /* VIP 4 : Rouge */
+        .tag-v4 {
+            background: rgba(220, 38, 38, 0.2);
+            color: #fca5a5;
+            border-color: #ef4444;
+        }
+
+        /* VIP 5 : Or (Ultimate) */
+        .tag-v5 {
+             background: rgba(251, 191, 36, 0.1);
+             color: #fbbf24;
+             border-color: #fbbf24;
+             box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); /* Petit effet lumineux */
+        }
+
+        /* Petit effet au survol */
+        .tag:hover { transform: scale(1.05); }
+
+        /* --- PIED DE PAGE (FOOTER) RÉPARÉ --- */
+        footer {
+            padding: 40px 20px;
+            text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto; /* Pousse le footer tout en bas */
+        }
+
+        /* La liste des liens (C'est ici que la magie opère) */
+        footer ul {
+            display: flex;            /* Force l'alignement horizontal */
+            justify-content: center;  /* Centre tout au milieu */
+            align-items: center;
+            list-style: none;         /* Enlève les puces moches */
+            padding: 0;
+            margin: 0 0 20px 0;       /* Espace sous les liens */
+            gap: 30px;                /* ESPACE ENTRE CHAQUE MOT (C'est ça qui manquait !) */
+            flex-wrap: wrap;          /* Permet de passer à la ligne sur petit écran */
+        }
+
+        footer li {
+            display: inline-block;
+        }
+
+        footer a {
+            color: #a1a1aa;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.3s ease;
+        }
+
+        footer a:hover {
+            color: #fff; /* Devient blanc au survol */
+        }
+        
+        /* Le petit texte de Copyright en bas */
+        footer p {
+            color: #555;
+            font-size: 0.8rem;
+            margin: 0;
+        }
+
+        .logo img {
+            width: 35px;
+            height: auto;
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5)); /* Ajoute un petit éclat violet derrière le logo */
+            transition: 0.3s;
+        }
+
+        .logo:hover img {
+            transform: rotate(-10deg) scale(1.1); /* Petit effet sympa au survol */
+        }
+
+        /* ANIMATIONS */
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } from { opacity: 0; transform: translateY(20px); } }
+        @keyframes bounce { 0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 40% {transform: translateY(-10px);} 60% {transform: translateY(-5px);} }
+        
+        
+    </style>
+</head>
+<body>
+
+    <div class="background-glow"></div>
+
+    <nav>
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo" style="width: 30px; height: 30px; vertical-align: middle; margin-right: 10px;">
+            ARCTIC
+        </div>
+        <div>
+            <button class="nav-btn" onclick="window.location.href='login.html'">Connexion</button>
+        </div>
+    </nav>
+
+    <header class="hero">
+        <h1>L'Investissement<br>Nouvelle Génération.</h1>
+        <p class="subtitle">
+            Générez des revenus passifs grâce à notre infrastructure quantique. 
+            Montez en grade VIP et débloquez des rendements supérieurs.
+        </p>
+        <button class="cta-btn" onclick="window.location.href='login.html'">Commencer l'exploration</button>
+
+        <div class="scroll-indicator">
+            <span style="font-size: 2rem; color: #555;">↓</span>
+        </div>
+    </header>
+
+    <section class="section">
+        <h2 class="section-title">Pourquoi choisir Arctic ?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">💎</div>
+                <div class="feature-title">Revenus Automatisés</div>
+                <p class="feature-desc">Nos serveurs travaillent pour vous 24h/24. Achetez du matériel, récoltez vos gains, et recommencez.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🚀</div>
+                <div class="feature-title">Infrastructure Quantique</div>
+                <p class="feature-desc">Accédez à des technologies de pointe comme le "Quantum Node" pour maximiser vos profits journaliers.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🛡️</div>
+                <div class="feature-title">Sécurité Maximale</div>
+                <p class="feature-desc">Vos actifs sont protégés dans nos coffres-forts numériques avec un cryptage de niveau militaire.</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="vip-preview">
+            <div class="vip-text">
+                <h2 style="font-size: 2rem; margin-bottom: 1rem;">Le Cercle VIP</h2>
+                <p style="color: #ccc; margin-bottom: 1.5rem;">
+                    L'influence est la clé du pouvoir. Invitez d'autres investisseurs pour grimper les échelons.
+                </p>
+                <ul style="color: #aaa; list-style: none; line-height: 2;">
+                    <li>✓ Frais de retrait réduits (jusqu'à 3%)</li>
+                    <li>✓ Bonus de minage (jusqu'à +50%)</li>
+                    <li>✓ Accès prioritaire au support</li>
+                </ul>
+                <button class="cta-btn" style="margin-top: 2rem; padding: 0.8rem 2rem; font-size: 0.9rem;" onclick="window.location.href='login.html'">Devenir VIP</button>
+            </div>
+            <div class="vip-tags">
+                <div class="tag tag-v1">VIP 1</div>
+                <div class="tag tag-v2">VIP 2</div>
+                <div class="tag tag-v3">VIP 3</div>
+                <div class="tag tag-v4">VIP 4</div>
+                <div class="tag tag-v5">VIP 5 👑</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <ul>
+            <li><a href="#">À propos</a></li>
+            <li><a href="#">Conditions d'utilisation</a></li>
+            <li><a href="support.html">Support</a></li>
+            <li><a href="#">Confidentialité</a></li>
+        </ul>
+
+        <p>&copy; 2026 Arctic Corporation. Tous droits réservés.</p>
+    </footer>
+
+<script>
+        const user = localStorage.getItem('arctic_user');
+        
+        if (user) {
+            // 1. On change le bouton du menu (Haut droite)
+            const navBtn = document.querySelector('.nav-btn');
+            navBtn.innerText = "Mon Espace";
+            navBtn.onclick = () => window.location.href = 'dashboard.html';
+
+            // 2. On change le gros bouton central (CTA)
+            const ctaBtn = document.querySelector('.cta-btn');
+            if (ctaBtn) { // Vérif de sécurité au cas où le bouton n'existe pas
+                ctaBtn.innerText = "Retourner au Dashboard";
+                ctaBtn.onclick = () => window.location.href = 'dashboard.html';
+            }
+        }
+</script>
+</body>
+
+</body>
+</html>

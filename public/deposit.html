@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Dépôt USDT</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; display: flex; min-height: 100vh; overflow-x: hidden; }
+        
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 50% 10%, rgba(76, 29, 149, 0.2), transparent 40%);
+            filter: blur(80px);
+        }
+
+        /* SIDEBAR (PC) */
+        .sidebar {
+            width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem;
+            display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100;
+            top: 0; left: 0; transition: transform 0.3s ease-in-out;
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        .main-content { margin-left: 270px; padding: 4rem 3rem; width: calc(100% - 270px); }
+
+        /* CARTE DEPOT */
+        .deposit-card {
+            background: rgba(20, 20, 25, 0.6); border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 20px;
+            padding: 2rem; max-width: 600px; margin: 0 auto; text-align: center;
+        }
+
+        .qr-code { width: 200px; height: 200px; background: white; margin: 20px auto; padding: 10px; border-radius: 10px; }
+        
+        .wallet-address {
+            background: rgba(0,0,0,0.5); padding: 15px; border-radius: 10px; border: 1px solid #333;
+            font-family: monospace; color: #a78bfa; margin-bottom: 20px; word-break: break-all; cursor: pointer; user-select: all;
+        }
+        
+        .copy-hint { font-size: 0.8rem; color: #aaa; margin-bottom: 30px; }
+
+        input { width: 100%; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid #444; border-radius: 8px; color: #fff; margin-bottom: 15px; font-size: 1rem; }
+        .submit-btn { width: 100%; padding: 15px; background: #7c3aed; color: white; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .submit-btn:hover { background: #6d28d9; }
+
+        /* VERSION MOBILE */
+        .mobile-toggle { display: none; }
+        @media screen and (max-width: 768px) {
+            .mobile-toggle {
+                display: block !important; position: fixed; top: 15px; left: 15px; z-index: 10000;
+                -webkit-appearance: none; background: #111; color: #fff; border: 2px solid #7c3aed;
+                padding: 10px 15px; border-radius: 8px; font-size: 1.5rem; cursor: pointer;
+            }
+            .sidebar { left: -100% !important; background: #0a0a0f; width: 250px; box-shadow: 5px 0 20px rgba(0,0,0,0.8); }
+            .sidebar.open { left: 0 !important; }
+            .main-content { margin-left: 0 !important; width: 100% !important; padding: 80px 20px 20px 20px; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+    </style>
+</head>
+<body>
+    <div class="background-glow"></div>
+    
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        <a href="dashboard.html" class="menu-item">Tableau de bord</a>
+        <a href="market.html" class="menu-item">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item">Aide / Support</a>
+        <a href="settings.html" class="menu-item">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        <div class="deposit-card">
+            <h2>Recharge USDT (TRC20)</h2>
+            <p style="color:#aaa;">Scannez le code ou copiez l'adresse ci-dessous.</p>
+
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=TX8......VOTRE_ADRESSE_ICI" class="qr-code">
+
+            <div class="wallet-address" onclick="copyAddress()">
+                TX8......VOTRE_ADRESSE_ICI
+            </div>
+            <div class="copy-hint">Cliquer pour copier l'adresse</div>
+
+            <hr style="border:0; border-top:1px solid #333; margin: 20px 0;">
+
+            <h3 style="text-align: left;">Preuve de paiement</h3>
+            <input type="number" id="amount" placeholder="Montant envoyé (en USDT)">
+            <input type="text" id="txid" placeholder="ID de Transaction (TXID / Hash)">
+            
+            <button class="submit-btn" onclick="submitDeposit()">ENVOYER LA PREUVE</button>
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        if (!username) window.location.href = 'login.html';
+
+        function toggleSidebar() {
+            document.querySelector('.sidebar').classList.toggle('open');
+        }
+
+        function copyAddress() {
+            const addr = document.querySelector('.wallet-address').innerText.trim();
+            navigator.clipboard.writeText(addr);
+            alert("Adresse copiée !");
+        }
+
+        async function submitDeposit() {
+            const amount = document.getElementById('amount').value;
+            const txid = document.getElementById('txid').value;
+
+            if(!amount || !txid) return alert("Veuillez remplir tous les champs.");
+
+            try {
+                const res = await fetch('/api/deposit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, amount, txid })
+                });
+                const data = await res.json();
+                if(data.success) {
+                    alert(data.message);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert("Erreur lors de l'envoi.");
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erreur serveur.");
+            }
+        }
+
+        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+    </script>
+</body>
+</html>
