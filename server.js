@@ -2,12 +2,13 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
+require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 const ADMIN_KEY = "ARCTIC_BOSS"; 
 
-const MONGO_URI = "mongodb+srv://admin:arctic@cluster0.qzlfxkz.mongodb.net/arcticDB?retryWrites=true&w=majority"; 
+const MONGO_URI = process.env.MONGO_URI; 
 
 // On ajoute l'option "family: 4" pour forcer la connexion et éviter le bug DNS
 mongoose.connect(MONGO_URI, {
