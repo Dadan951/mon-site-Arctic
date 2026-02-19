@@ -280,37 +280,27 @@
     }
 
     async function buyItem(itemId) {
-        const btn = event.target;
-        const originalText = btn.innerText;
-        btn.innerText = "Traitement...";
-        btn.disabled = true;
+        const token = localStorage.getItem('arctic_token'); // On le récupère juste avant l'achat
+        const username = localStorage.getItem('arctic_user');
 
-        try {
-            const response = await fetch('/api/buy', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': token 
-                },
-                body: JSON.stringify({ 
-                    username: username, 
-                    productId: itemId 
-                })
-            });
-            
-            const result = await response.json();
-            
-            if (result.success) {
-                showToast(result.message, 'success');
-                loadMarket(); // On rafraîchit le solde
-            } else {
-                showToast(result.message, 'error');
-            }
-        } catch (err) {
-            showToast("Erreur lors de l'achat", 'error');
-        } finally {
-            btn.innerText = originalText;
-            btn.disabled = false;
+        const response = await fetch('/api/buy', {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': token // <--- C'EST CETTE LIGNE QUI DONNE LE BRACELET
+            },
+            body: JSON.stringify({ 
+                username: username, 
+                productId: itemId  // Vérifie si ton serveur attend 'productId' ou 'itemId'
+            })
+        });
+
+        const result = await response.json();
+        if (result.success) {
+            showToast("Achat réussi !");
+            loadMarket();
+        } else {
+            alert(result.message); // C'est ici que tu vois "Accès refusé"
         }
     }
 
