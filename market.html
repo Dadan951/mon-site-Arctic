@@ -205,111 +205,125 @@
     </div>
 
     <script>
-        const username = localStorage.getItem('arctic_user');
-        const token = localStorage.getItem('arctic_token'); // On récupère le badge
+    const username = localStorage.getItem('arctic_user');
+    const token = localStorage.getItem('arctic_token');
 
-        if (!username || !token) window.location.href = 'login.html';
+    // Sécurité : Si pas de token, retour au login
+    if (!username || !token) {
+        window.location.href = 'login.html';
+    }
 
-        // --- LISTE DES IMAGES PRODUITS ---
-        const IMAGES = {
-            'miner_v1': 'https://boutique.erisay-traiteur.fr/wp-content/uploads/2015/03/glacons-e1601543034905.jpg',
-            'nitrogen_turb': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBYRpGbJgTnWfc4ugXmbavPePVIq3-BJSnZQ&s',
-            'quantum_node': 'https://cdn.oceanwide-expeditions.com/media-dynamic/cache/widen_1600/media/default/0001/08/d8ed7aa54a996dae0f3c0eb4220704c79cd540d8.jpeg',
-            'arctic_server': 'https://blog.initiatives.fr/wp-content/uploads/2012/12/iceberg2.png'
-        };
+    const IMAGES = {
+        'miner_v1': 'https://boutique.erisay-traiteur.fr/wp-content/uploads/2015/03/glacons-e1601543034905.jpg',
+        'nitrogen_turb': 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTBYRpGbJgTnWfc4ugXmbavPePVIq3-BJSnZQ&s',
+        'quantum_node': 'https://cdn.oceanwide-expeditions.com/media-dynamic/cache/widen_1600/media/default/0001/08/d8ed7aa54a996dae0f3c0eb4220704c79cd540d8.jpeg',
+        'arctic_server': 'https://blog.initiatives.fr/wp-content/uploads/2012/12/iceberg2.png'
+    };
 
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px; animation: slideIn 0.4s forwards;`;
-            toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
-        }
+    function showToast(message, type = 'success') {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px;`;
+        toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
+    }
 
-        async function loadMarket() {
-            try {
-                // 1. Solde
-                const userRes = await fetch('/api/user/' + username);
-                const userData = await userRes.json();
-                if (userData.success) document.getElementById('header-balance').innerText = userData.user.balance.toFixed(2) + ' €';
-
-                // 2. Produits
-                const prodRes = await fetch('/api/products');
-                const products = await prodRes.json();
-                
-                const container = document.getElementById('products-container');
-                container.innerHTML = '';
-
-                for (const [key, p] of Object.entries(products)) {
-                    // Calcul ROI
-                    const roiDays = Math.ceil(p.price / p.dailyIncome);
-                    
-                    const html = `
-                        <div class="product-card">
-                            <div class="p-image" style="background-image: url('${IMAGES[key] || 'https://via.placeholder.com/300'}');">
-                                <div class="roi-badge">ROI: ${roiDays} Jours</div>
-                            </div>
-                            <div class="p-content">
-                                <div class="p-title">${p.name}</div>
-                                <div class="p-desc">${p.desc || "Matériel de minage standard."}</div>
-                                
-                                <div class="p-stats">
-                                    <div class="stat-item">
-                                        <div class="stat-label">Prix</div>
-                                        <div class="stat-val" style="color:#a78bfa;">${p.price} €</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-label">Production</div>
-                                        <div class="stat-val" style="color:#4ade80;">+${p.dailyIncome} €/j</div>
-                                    </div>
-                                </div>
-
-                                <button class="buy-btn" onclick="buyItem('${key}')">ACHETER</button>
-                            </div>
-                        </div>
-                    `;
-                    container.innerHTML += html;
-                }
-            } catch (e) {
-                console.error("Erreur chargement marché:", e);
-                document.getElementById('products-container').innerHTML = "Erreur de connexion au serveur.";
+    async function loadMarket() {
+        try {
+            // 1. Récupérer le solde (avec le token !)
+            const userRes = await fetch('/api/user/' + username, {
+                headers: { 'Authorization': token }
+            });
+            const userData = await userRes.json();
+            if (userData.success) {
+                document.getElementById('header-balance').innerText = userData.user.balance.toFixed(2) + ' €';
             }
+
+            // 2. Récupérer les produits
+            const prodRes = await fetch('/api/products');
+            const products = await prodRes.json();
+            
+            const container = document.getElementById('products-container');
+            container.innerHTML = '';
+
+            for (const [key, p] of Object.entries(products)) {
+                const roiDays = Math.ceil(p.price / p.dailyIncome);
+                const html = `
+                    <div class="product-card">
+                        <div class="p-image" style="background-image: url('${IMAGES[key] || 'https://via.placeholder.com/300'}');">
+                            <div class="roi-badge">ROI: ${roiDays} Jours</div>
+                        </div>
+                        <div class="p-content">
+                            <div class="p-title">${p.name}</div>
+                            <div class="p-desc">${p.desc || "Matériel de minage standard."}</div>
+                            <div class="p-stats">
+                                <div class="stat-item">
+                                    <div class="stat-label">Prix</div>
+                                    <div class="stat-val" style="color:#a78bfa;">${p.price} €</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-label">Production</div>
+                                    <div class="stat-val" style="color:#4ade80;">+${p.dailyIncome} €/j</div>
+                                </div>
+                            </div>
+                            <button class="buy-btn" onclick="buyItem('${key}')">ACHETER</button>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML += html;
+            }
+        } catch (e) {
+            console.error("Erreur marché:", e);
+            document.getElementById('products-container').innerHTML = "Erreur de connexion au serveur.";
         }
+    }
 
-        async function buyItem(itemId) {
-            const btn = event.target;
-            const originalText = btn.innerText;
-            btn.innerText = "...";
-            btn.disabled = true;
+    async function buyItem(itemId) {
+        const btn = event.target;
+        const originalText = btn.innerText;
+        btn.innerText = "Traitement...";
+        btn.disabled = true;
 
+        try {
             const response = await fetch('/api/buy', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': token // On montre le badge au vendeur !
+                    'Authorization': token 
                 },
-                body: JSON.stringify({ username, productId })
+                body: JSON.stringify({ 
+                    username: username, 
+                    productId: itemId 
+                })
             });
-            const result = await res.json();
+            
+            const result = await response.json();
             
             if (result.success) {
                 showToast(result.message, 'success');
-                loadMarket();
+                loadMarket(); // On rafraîchit le solde
             } else {
                 showToast(result.message, 'error');
             }
+        } catch (err) {
+            showToast("Erreur lors de l'achat", 'error');
+        } finally {
             btn.innerText = originalText;
             btn.disabled = false;
         }
+    }
 
-        function toggleSidebar() {
-            document.querySelector('.sidebar').classList.toggle('open');
-        }
+    function toggleSidebar() {
+        document.querySelector('.sidebar').classList.toggle('open');
+    }
 
-        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
-        
-        loadMarket();
-    </script>
+    function logout() { 
+        localStorage.clear(); 
+        window.location.href = 'index.html'; 
+    }
+    
+    loadMarket();
+</script>
 </body>
 </html>
