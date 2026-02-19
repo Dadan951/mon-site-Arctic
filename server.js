@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 const app = express();
@@ -56,6 +57,25 @@ const PRODUCTS = {
     'arctic_server': { name: "Data Center Glaciaire Omega", price: 500, dailyIncome: 180, desc: "Infrastructure ultime." }
 };
 
+// --- LE VIGILE (SÉCURITÉ JWT) ---
+const verifyToken = (req, res, next) => {
+    // Le vigile regarde si le joueur a envoyé un bracelet dans l'en-tête de sa demande
+    const token = req.headers['authorization'];
+    
+    if (!token) {
+        return res.status(403).json({ success: false, message: "Accès refusé : Aucun bracelet VIP !" });
+    }
+
+    try {
+        // Le vigile vérifie la signature du bracelet
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded; // Si c'est bon, il mémorise qui est le joueur
+        next(); // Il ouvre la porte et laisse passer l'action !
+    } catch (err) {
+        return res.status(401).json({ success: false, message: "Bracelet VIP faux ou expiré !" });
+    }
+};
+
 // --- FONCTIONS ---
 const calculateVip = async (user) => {
     const count = await User.countDocuments({ referredBy: user.referralCode });
@@ -102,7 +122,13 @@ app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
     try {
         const user = await User.findOne({ username, password });
-        if (user) res.json({ success: true, user });
+        if (user) {
+            // Le joueur a le bon mot de passe, on lui fabrique un bracelet VIP valable 24 heures !
+            const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
+            
+            // On envoie le joueur ET le token
+            res.json({ success: true, user, token }); 
+        }
         else res.status(401).json({ success: false, message: "Erreur identifiants" });
     } catch (e) { res.status(500).json({ error: "Erreur serveur" }); }
 });
@@ -132,9 +158,12 @@ app.get('/api/user/:username', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false }); }
 });
 
-// ACHAT
-app.post('/api/buy', async (req, res) => {
-    const { username, itemId } = req.body;
+// ACHAT (SÉCURISÉ)
+app.post('/api/buy', verifyToken, async (req, res) => {
+    // Le vigile a déjà vérifié le bracelet, on prend le nom directement sur le bracelet !
+    const username = req.user.username; 
+    const { itemId } = req.body;
+    
     try {
         const user = await User.findOne({ username });
         const product = PRODUCTS[itemId];
@@ -150,9 +179,11 @@ app.post('/api/buy', async (req, res) => {
     } catch (e) { res.status(500).json({ success: false }); }
 });
 
-// RÉCOLTE
-app.post('/api/harvest', async (req, res) => {
-    const { username } = req.body;
+// RÉCOLTE (SÉCURISÉE)
+app.post('/api/harvest', verifyToken, async (req, res) => {
+    // Pareil, on fait confiance au bracelet, pas à ce que le joueur tape
+    const username = req.user.username;
+    
     try {
         const user = await User.findOne({ username });
         if (!user) return res.status(404).json({ success: false });

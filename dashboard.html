@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ARCTIC | Dashboard</title>
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- BASE --- */
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background-color: #050505; color: #fff; margin: 0; display: flex; min-height: 100vh; overflow-x: hidden; }
+        
+        /* FOND VIOLET */
+        .background-glow {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 15% 50%, rgba(76, 29, 149, 0.2), transparent 40%),
+                        radial-gradient(circle at 85% 30%, rgba(124, 58, 237, 0.15), transparent 40%);
+            filter: blur(80px);
+            animation: moveAurora 15s infinite alternate;
+        }
+        @keyframes moveAurora { 0% { transform: scale(1); opacity: 0.8; } 100% { transform: scale(1.1); opacity: 1; } }
+
+        /* SIDEBAR */
+        .sidebar { width: 250px; background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(20px); border-right: 1px solid rgba(255, 255, 255, 0.05); padding: 2rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 100; }
+        .logo { font-size: 1.5rem; font-weight: 800; letter-spacing: 2px; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 3rem; cursor: pointer; }
+        .menu-item { padding: 1rem; margin-bottom: 0.5rem; cursor: pointer; border-radius: 10px; transition: 0.3s; color: #a1a1aa; text-decoration: none; display: block; }
+        .menu-item:hover, .menu-item.active { background: rgba(124, 58, 237, 0.1); color: #fff; border: 1px solid rgba(124, 58, 237, 0.2); }
+
+        /* CONTENT */
+        .main-content { margin-left: 270px; padding: 4rem 3rem; width: calc(100% - 270px); }
+        
+        /* GRID SYSTEM */
+        .stats-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 2rem; 
+            margin-bottom: 3rem; 
+        }
+
+        /* DESIGN DES CARTES */
+        .card { 
+            background: rgba(20, 20, 25, 0.6); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            border-radius: 20px; 
+            padding: 1.5rem; 
+            position: relative; 
+            overflow: hidden;
+            height: 320px; 
+            display: flex; flex-direction: column;
+        }
+        .card-title { font-size: 0.85rem; color: #a1a1aa; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .card-value { font-size: 2.2rem; font-weight: 800; margin-bottom: 5px; }
+
+        /* AVATAR STYLE */
+        .profile-pic {
+            width: 60px; height: 60px; border-radius: 50%; 
+            background-color: #333; background-size: cover; background-position: center;
+            border: 2px solid #7c3aed; box-shadow: 0 0 15px rgba(124, 58, 237, 0.4);
+            margin-right: 20px; flex-shrink: 0;
+        }
+
+        /* LISTES DÉFILANTES */
+        .scrollable-list {
+            flex: 1; overflow-y: auto; padding-right: 5px;
+        }
+        .scrollable-list::-webkit-scrollbar { width: 5px; }
+        .scrollable-list::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+
+        /* ÉLÉMENTS HISTORIQUE */
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; }
+        .history-item:last-child { border-bottom: none; }
+        .h-desc { color: #e4e4e7; font-weight: 500; }
+        .h-time { font-size: 0.7rem; color: #666; }
+        .h-plus { color: #4ade80; font-weight: bold; }
+        .h-minus { color: #ef4444; font-weight: bold; }
+
+        /* BOUTONS */
+        .harvest-btn { width: 100%; background: rgba(124, 58, 237, 0.2); border: 1px solid #7c3aed; color: #fff; padding: 12px; border-radius: 10px; cursor: pointer; font-weight: bold; transition: 0.3s; margin-top: auto; }
+        .harvest-btn:hover { background: rgba(124, 58, 237, 0.4); box-shadow: 0 0 15px rgba(124, 58, 237, 0.3); }
+        .withdraw-btn { margin-top: 10px; width: 100%; background: transparent; border: 1px solid #333; color: #aaa; padding: 8px; border-radius: 8px; cursor: pointer; }
+        .withdraw-btn:hover { border-color: #fff; color: #fff; }
+
+        /* VIP BADGE */
+        .vip-badge { display: inline-block; padding: 5px 15px; border-radius: 50px; font-weight: 800; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; vertical-align: middle; border: 1px solid transparent; box-shadow: 0 0 15px rgba(0,0,0,0.5); }
+        .vip-1 { background: #2a2a2a; color: #aaaaaa; border: 1px solid #444; }
+        .vip-2 { background: rgba(37, 99, 235, 0.2); color: #60a5fa; border-color: #3b82f6; }
+        .vip-3 { background: rgba(124, 58, 237, 0.2); color: #c4b5fd; border-color: #8b5cf6; }
+        .vip-4 { background: #b91c1c; color: #fff; border: 1px solid #ef4444; }
+        .vip-5 { background: rgba(251, 191, 36, 0.1); color: #fbbf24; border-color: #fbbf24; box-shadow: 0 0 15px rgba(251, 191, 36, 0.3); }
+        
+        .inventory-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+
+        /* --- 1. CONFIGURATION DE BASE (PC) --- */
+        .mobile-toggle { display: none; }
+
+        .sidebar { 
+            width: 250px; 
+            background: rgba(255, 255, 255, 0.03); 
+            backdrop-filter: blur(20px); 
+            border-right: 1px solid rgba(255, 255, 255, 0.05); 
+            padding: 2rem; 
+            display: flex; 
+            flex-direction: column; 
+            position: fixed; 
+            height: 100vh; 
+            z-index: 100; 
+            left: 0; 
+            top: 0;
+            transition: transform 0.3s ease-in-out; 
+        }
+
+        .main-content { 
+            margin-left: 270px; 
+            padding: 4rem 3rem; 
+            width: calc(100% - 270px); 
+        }
+
+        /* --- VERSION MOBILE --- */
+        @media screen and (max-width: 768px) {
+            .mobile-toggle {
+                display: block !important;
+                position: fixed;
+                top: 15px; left: 15px;
+                z-index: 10000;
+                background: #111;
+                color: #fff;
+                border: 2px solid #7c3aed;
+                padding: 10px 15px;
+                border-radius: 8px;
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+
+            .sidebar {
+                position: fixed;
+                top: 0; left: -100% !important;
+                width: 250px; height: 100vh;
+                background: #0a0a0f;
+                transition: 0.3s ease-in-out;
+                z-index: 9999;
+                box-shadow: 5px 0 20px rgba(0,0,0,0.8);
+            }
+
+            .sidebar.open { left: 0 !important; }
+
+            .main-content {
+                margin-left: 0 !important;
+                width: 100% !important;
+                padding-top: 80px; 
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .stats-grid, .products-grid { grid-template-columns: 1fr; }
+            .sidebar .logo { margin-top: 50px; }
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px; /* Espace entre l'image et le texte */
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            
+    /* Gradient identique à ton design original */
+            background: linear-gradient(90deg, #fff, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 3rem;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+    /* On retire le filtre de texte pour que l'image soit visible normalement */
+            -webkit-text-fill-color: initial; 
+            filter: drop-shadow(0 0 5px rgba(124, 58, 237, 0.5));
+        }
+
+        .logo:hover {
+            transform: scale(1.02); /* Petit effet au clic/survol */
+        }
+
+        
+    </style>
+</head>
+<body>
+    <button class="mobile-toggle" onclick="toggleSidebar()">☰</button>
+    <div class="background-glow"></div>
+    <div id="toast-container" style="position: fixed; bottom: 30px; right: 30px; z-index: 9999; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <div class="sidebar">
+        <div class="logo" onclick="window.location.href='index.html'">
+            <img src="favicon.png" alt="Logo">
+            <span>ARCTIC</span>
+        </div>
+        <a href="dashboard.html" class="menu-item active">Tableau de bord</a>
+        <a href="market.html" class="menu-item">Marché</a>
+        <a href="ranking.html" class="menu-item">Classement</a>
+        <a href="withdraw.html" class="menu-item">Retrait</a>
+        <a href="deposit.html" class="menu-item">Dépôt</a>
+        <a href="referral.html" class="menu-item">Parrainage</a>
+        <a href="support.html" class="menu-item">Aide / Support</a>
+        <a href="settings.html" class="menu-item">Paramètres</a>
+        <div class="menu-item" style="margin-top: auto; margin-bottom: 20px; color: #ef4444;" onclick="logout()">Déconnexion</div>
+    </div>
+
+    <div class="main-content">
+        <div style="display: flex; align-items: center; margin-bottom: 2rem;">
+            <div id="dashboard-avatar" class="profile-pic"></div>
+            <div>
+                <h2 id="welcome-msg" style="margin:0; font-size: 1.5rem;">Chargement...</h2>
+                <div id="vip-badge-display" class="vip-badge vip-1" style="margin-top: 5px;">VIP 1</div>
+            </div>
+        </div>
+
+        <div class="stats-grid">
+            
+            <div class="card">
+                <div class="card-title">SOLDE ACHAT</div>
+                <div class="card-value" id="balance-display">0.00 €</div>
+                <div style="font-size: 0.8rem; color: #aaa; margin-top: 5px;">Utilisez ce solde au marché.</div>
+                <div style="margin-top: auto;">
+                    <button class="withdraw-btn" onclick="window.location.href='market.html'">Aller au Marché 🛒</button>
+                    <button onclick="addFakeMoney()" style="margin-top: 10px; font-size: 0.7rem; background: none; border: none; color: #333; cursor: pointer; width: 100%;">(Triche +50€)</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">ACTIVITÉS RÉCENTES 📜</div>
+                <div class="scrollable-list" id="history-container">
+                    <div style="text-align: center; color: #555; padding-top: 20px;">Chargement...</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">MON MATÉRIEL ACTIF</div>
+                <div class="scrollable-list" id="inventory-list" style="max-height: 80px; margin-bottom: 10px;">
+                    <p style="color: #555; font-size: 0.8rem;">Aucun matériel.</p>
+                </div>
+
+                <div style="background: rgba(0,0,0,0.3); padding: 15px; border-radius: 15px; margin-top: auto;">
+                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: #aaa;">
+                        <span>Production :</span>
+                        <span id="daily-rate" style="color: #fff; font-weight: bold;">0.00 €/j</span>
+                    </div>
+                    <div id="pending-money" style="color: #a78bfa; font-weight: bold; text-shadow: 0 0 10px rgba(167, 139, 250, 0.3); font-size: 1.4rem; margin: 10px 0;">0.00 €</div>
+                    <button class="harvest-btn" onclick="harvestMoney()">RÉCOLTER ⛏️</button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">MON ÉQUIPE</div>
+                
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 0.8rem; color: #aaa;">Mon Code</div>
+                    <div class="card-value" style="font-size: 1.8rem; color: #fff;" id="referral-code">...</div>
+                </div>
+
+                <div class="card-title" style="font-size: 0.7rem; margin-bottom: 5px;">MES FILLEULS</div>
+                <div class="scrollable-list" id="referral-list" style="background: rgba(0,0,0,0.2); border-radius: 10px; padding: 10px; margin-bottom: 10px; flex: 1;">
+                    <p style="text-align:center; color:#555; font-size:0.8rem; margin-top: 20px;">Chargement...</p>
+                </div>
+                
+                <div style="margin-top: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px;">
+                        <span style="color:#aaa; font-size: 0.7rem;" id="next-vip-text">Prochain niveau</span>
+                        <span style="font-weight: bold; font-size: 0.9rem;" id="referral-count">0</span>
+                    </div>
+                    <div style="width: 100%; background: rgba(255,255,255,0.1); height: 6px; border-radius: 10px; overflow: hidden;">
+                        <div class="progress-bar" id="vip-progress" style="height: 100%; background: #7c3aed; width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const username = localStorage.getItem('arctic_user');
+        const token = localStorage.getItem('arctic_token'); // NOUVEAU : On sort le bracelet de la poche
+        
+        // Si pas de compte ou pas de bracelet, on renvoie au login
+        if (!username || !token) window.location.href = 'login.html';
+
+        // --- LISTE DES NOMS CORRIGÉS (Avec tes noms perso) ---
+        const PRODUCT_NAMES = { 
+            // 1. LES NOMS CORRECTS (Basé sur le prix)
+            '1': 'Module Cryogénique Alpha',          // 20 €
+            '2': 'Processeur Polaire Quantique',      // 100 €
+            '3': 'Data Center Glaciaire Omega',       // 500 €
+            
+            // 2. MAPPAGE DES ANCIENS IDS (Compatibilité)
+            'miner_v1': 'Module Cryogénique Alpha',
+            'nitrogen_turb': 'Turbine à Azote Liquide',
+            'quantum_node': 'Processeur Polaire Quantique',
+            'arctic_server': 'Data Center Glaciaire Omega',
+
+            // 3. SECONDAIRES
+            '4': 'Réacteur à Fusion Froide',
+            '5': 'Réseau Neural Arctique',
+            '6': 'Station Orbitale',
+            'miner_1': 'Module Cryogénique Alpha',
+            'miner_2': 'Processeur Polaire Quantique',
+            'miner_3': 'Data Center Glaciaire Omega'
+        };
+
+        let globalDailyIncome = 0;
+        let lastCollectionDate = new Date();
+        let miningInterval = null;
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px; animation: slideIn 0.4s forwards;`;
+            toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        async function loadUserData() {
+            try {
+                const response = await fetch('/api/user/' + username);
+                const data = await response.json();
+
+                if (data.success) {
+                    const user = data.user;
+                    const vip = data.vipStatus;
+
+                    // 1. HEADER & AVATAR
+                    document.getElementById('welcome-msg').innerHTML = `Bienvenue, ${user.username}`;
+                    const avatarDiv = document.getElementById('dashboard-avatar');
+                    const avatarUrl = user.avatar || 'https://ui-avatars.com/api/?name=' + user.username + '&background=7c3aed&color=fff&size=128';
+                    avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
+
+                    // 2. BADGE VIP
+                    const badge = document.getElementById('vip-badge-display');
+                    badge.className = `vip-badge vip-${vip.level}`;
+                    badge.innerText = `VIP ${vip.level}`;
+
+                    // 3. SOLDE ACHAT
+                    document.getElementById('balance-display').innerText = user.balance.toFixed(2) + ' €';
+
+                    // 4. PARRAINAGE
+                    document.getElementById('referral-code').innerText = user.referralCode;
+                    document.getElementById('referral-count').innerText = vip.referralCount;
+                    
+                    const refList = document.getElementById('referral-list');
+                    refList.innerHTML = ''; 
+
+                    if (data.referrals && data.referrals.length > 0) {
+                        data.referrals.forEach(ref => {
+                            const earnings = ref.earnings ? Number(ref.earnings) : 0;
+                            refList.innerHTML += `
+                                <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem;">
+                                    <div style="display:flex; align-items:center;">
+                                        <div style="width:8px; height:8px; background:#4ade80; border-radius:50%; margin-right:8px;"></div>
+                                        <span style="color: #fff;">${ref.username}</span>
+                                    </div>
+                                    <span style="color: #4ade80; font-weight: bold;">+${earnings.toFixed(2)} €</span>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        refList.innerHTML = '<div style="text-align:center; color:#555; font-size:0.8rem; margin-top: 10px;">Aucun filleul actif.</div>';
+                    }
+
+                    let nextGoal = 2;
+                    if (vip.level === 2) nextGoal = 5;
+                    if (vip.level === 3) nextGoal = 10;
+                    if (vip.level === 4) nextGoal = 30;
+                    if (vip.level === 5) nextGoal = 100;
+                    const progressPercent = Math.min((vip.referralCount / nextGoal) * 100, 100);
+                    document.getElementById('vip-progress').style.width = progressPercent + '%';
+                    document.getElementById('next-vip-text').innerText = vip.level < 5 ? `Prochain niveau : ${nextGoal}` : "MAXIMUM";
+
+                    // 5. INVENTAIRE
+                    const invDiv = document.getElementById('inventory-list');
+                    invDiv.innerHTML = '';
+                    let hasItems = false;
+                    if (user.inventory) {
+                        for (const [key, count] of Object.entries(user.inventory)) {
+                            if (count > 0) {
+                                hasItems = true;
+                                const displayName = PRODUCT_NAMES[key] || `Machine ${key}`;
+                                invDiv.innerHTML += `<div class="inventory-item"><span style="color:#ccc;">${displayName}</span><span style="color:#a78bfa; font-weight:bold;">x${count}</span></div>`;
+                            }
+                        }
+                    }
+                    if (!hasItems) invDiv.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color: #555; font-size: 0.8rem;">Aucun matériel.</div>';
+
+                    // 6. MINAGE
+                    document.getElementById('daily-rate').innerText = data.totalDaily.toFixed(2) + ' €/jour';
+                    globalDailyIncome = data.totalDaily;
+                    lastCollectionDate = new Date(user.lastCollection || user.createdAt);
+                    startMiningCounter();
+
+                    // 7. HISTORIQUE (Trié par date : le plus récent en haut)
+                    const historyDiv = document.getElementById('history-container');
+                    if (user.history && user.history.length > 0) {
+                        historyDiv.innerHTML = '';
+                        
+                        // C'EST ICI LA MAGIE : On trie par date (b - a = décroissant)
+                        user.history.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(item => {
+                            
+                            const amount = Number(item.amount);
+                            const isPositive = amount >= 0;
+                            const sign = isPositive ? '+' : '';
+                            const colorClass = isPositive ? 'h-plus' : 'h-minus';
+                            const dateObj = new Date(item.date);
+                            const timeStr = !isNaN(dateObj) ? dateObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '--:--';
+
+                            historyDiv.innerHTML += `
+                                <div class="history-item">
+                                    <div style="display:flex; flex-direction:column;">
+                                        <span class="h-desc">${item.desc}</span>
+                                        <span class="h-time">${timeStr}</span>
+                                    </div>
+                                    <div class="${colorClass}">${sign}${amount.toFixed(2)} €</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        historyDiv.innerHTML = '<div style="height:100%; display:flex; align-items:center; justify-content:center; color: #555; font-size: 0.8rem;">Aucune activité récente.</div>';
+                    }
+                }
+            } catch (error) { console.error(error); }
+        }
+
+        function startMiningCounter() {
+            if (miningInterval) clearInterval(miningInterval);
+            if (globalDailyIncome === 0) { document.getElementById('pending-money').innerText = "0.00 €"; return; }
+            miningInterval = setInterval(() => {
+                const now = new Date();
+                const secondsPassed = (now - lastCollectionDate) / 1000;
+                const currentPending = (globalDailyIncome / 86400) * secondsPassed;
+                document.getElementById('pending-money').innerText = currentPending.toFixed(2) + " €";
+            }, 100);
+        }
+
+        async function harvestMoney() {
+            const btn = document.querySelector('.harvest-btn');
+            btn.innerText = '...';
+            btn.disabled = true;
+
+            const res = await fetch('/api/harvest', { 
+                method: 'POST', 
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token // NOUVEAU : Le joueur lève le bras et montre le bracelet !
+                }, 
+                body: JSON.stringify({ username }) 
+            });
+            const data = await res.json();
+            
+            if (data.success) { 
+                showToast(data.message, 'success'); 
+                loadUserData(); 
+            } else { 
+                showToast(data.message, 'error'); 
+            }
+            btn.innerText = 'RÉCOLTER ⛏️';
+            btn.disabled = false;
+        }
+
+        async function addFakeMoney() {
+            // On envoie la clé admin "ARCTIC_BOSS" pour avoir le droit de se donner de l'argent
+            await fetch('/api/add-money', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ username, amount: 50, adminKey: "ARCTIC_BOSS" }) 
+            });
+            loadUserData();
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('open');
+        }
+
+        function logout() { 
+            localStorage.removeItem('arctic_user'); 
+            localStorage.removeItem('arctic_token'); // On déchire le bracelet en sortant !
+            window.location.href = 'index.html'; 
+        }
+        
+        loadUserData();
+    </script>
+</body>
+</html>
