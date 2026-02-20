@@ -158,8 +158,8 @@ app.get('/api/ranking', verifyToken, async (req, res) => {
     }
 });
 
-// INFO USER
-app.get('/api/user/:username', async (req, res) => {
+// INFO USER (SÉCURISÉE)
+app.get('/api/user/:username', verifyToken, async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.username });
         if (user) {
@@ -178,7 +178,22 @@ app.get('/api/user/:username', async (req, res) => {
                 return { username: filleul.username, earnings };
             });
 
-            res.json({ success: true, user, vipStatus, totalDaily: baseDaily * vipStatus.miningBonus, referrals: referralsList });
+            // ON S'ASSURE QUE user.avatar EST BIEN PRÉSENT ICI
+            res.json({ 
+                success: true, 
+                user: {
+                    username: user.username,
+                    balance: user.balance,
+                    withdrawalBalance: user.withdrawalBalance,
+                    avatar: user.avatar, // CRUCIAL
+                    referralCode: user.referralCode,
+                    inventory: Object.fromEntries(user.inventory),
+                    history: user.history
+                }, 
+                vipStatus, 
+                totalDaily: baseDaily * vipStatus.miningBonus, 
+                referrals: referralsList 
+            });
         } else res.status(404).json({ success: false });
     } catch (e) { res.status(500).json({ success: false }); }
 });
