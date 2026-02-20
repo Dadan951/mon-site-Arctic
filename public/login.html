@@ -159,12 +159,11 @@
                     localStorage.setItem('arctic_user', data.user.username);
                     localStorage.setItem('arctic_token', data.token);
                     
-                    // NOUVEAU : Si c'est l'admin, on stocke la clé pour tromper la page admin !
-                    if (data.user.username === "TonPseudoAdmin") { // <-- Pense à mettre le même pseudo qu'au-dessus !
+                    // NOUVEAU : On écoute le signal du serveur au lieu de lire le pseudo
+                    if (data.isAdmin) { 
                         localStorage.setItem('arctic_admin_key', data.adminKey);
                         window.location.href = 'admin.html';
                     } else {
-                        // Sinon, c'est un joueur normal
                         window.location.href = 'dashboard.html';
                     }
 
