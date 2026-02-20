@@ -70,10 +70,13 @@
         }
 
         h1 {
-            font-size: clamp(3rem, 7vw, 5rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem;
+            /* On diminue le 3rem à 2.2rem pour que ça rentre sur tous les écrans */
+            font-size: clamp(2.2rem, 8vw, 4.5rem); 
+            font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem;
             background: linear-gradient(180deg, #ffffff 0%, #7c3aed 100%);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             animation: fadeInUp 1s ease-out forwards; opacity: 0;
+            padding: 0 10px; /* Ajoute un petit coussin de sécurité sur les bords */
         }
 
         p.subtitle {
@@ -123,7 +126,14 @@
             border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 30px;
             padding: 3rem; margin-top: 4rem; flex-wrap: wrap; gap: 2rem;
         }
-        .vip-text { flex: 1; min-width: 300px; }
+        .vip-text { 
+            flex: 1; 
+            min-width: 280px; 
+            text-align: center; /* Centre les paragraphes et les titres */
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; /* Centre la liste à puces et le bouton */
+        }
         .vip-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: center; }
         /* --- NOUVEAUX STYLES DES TAGS VIP --- */
         .vip-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: center; }
@@ -292,7 +302,7 @@
                 <p style="color: #ccc; margin-bottom: 1.5rem;">
                     L'influence est la clé du pouvoir. Invitez d'autres investisseurs pour grimper les échelons.
                 </p>
-                <ul style="color: #aaa; list-style: none; line-height: 2;">
+                <ul style="color: #aaa; list-style: none; line-height: 2; padding: 0; text-align: center;">
                     <li>✓ Frais de retrait réduits (jusqu'à 3%)</li>
                     <li>✓ Bonus de minage (jusqu'à +50%)</li>
                     <li>✓ Accès prioritaire au support</li>
