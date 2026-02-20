@@ -119,19 +119,18 @@ app.post('/api/register', async (req, res) => {
 
 // CONNEXION
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-
     // 👑 1. LE PASSAGE SECRET DU BOSS 👑
-    // Pense à remplacer "TonPseudoAdmin" par le pseudo que tu veux taper pour te connecter
-    if (username === "Dadan" && password === ADMIN_KEY) {
-        // On te crée un bracelet VIP juste pour la forme
-        const token = jwt.sign({ username: "AdminBoss" }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
+    const bossUsername = process.env.ADMIN_USERNAME; // On récupère ton pseudo du .env
+
+    if (username === bossUsername && password === ADMIN_KEY) {
+        const token = jwt.sign({ username: bossUsername }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
         
         return res.json({ 
             success: true, 
-            user: { username: "Dadan" }, 
+            user: { username: bossUsername }, 
             token: token,
-            adminKey: ADMIN_KEY // TRÈS IMPORTANT : on renvoie la clé admin au front !
+            adminKey: ADMIN_KEY,
+            isAdmin: true // TRÈS IMPORTANT : Le signal secret pour le Front-end !
         });
     }
 
