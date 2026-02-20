@@ -279,28 +279,32 @@
         }
     }
 
-    async function buyItem(itemId) {
-        const token = localStorage.getItem('arctic_token'); // On le récupère juste avant l'achat
-        const username = localStorage.getItem('arctic_user');
+    async function buyProduct(itemId) {
+        // 1. On récupère le badge VIP
+        const token = localStorage.getItem('arctic_token');
+        
+        try {
+            const response = await fetch('/api/buy', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': token // ON ENVOIE LE BADGE ICI
+                },
+                body: JSON.stringify({ itemId: itemId })
+            });
 
-        const response = await fetch('/api/buy', {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': token // <--- C'EST CETTE LIGNE QUI DONNE LE BRACELET
-            },
-            body: JSON.stringify({ 
-                username: username, 
-                productId: itemId  // Vérifie si ton serveur attend 'productId' ou 'itemId'
-            })
-        });
+            const data = await response.json();
 
-        const result = await response.json();
-        if (result.success) {
-            showToast("Achat réussi !");
-            loadMarket();
-        } else {
-            alert(result.message); // C'est ici que tu vois "Accès refusé"
+            if (data.success) {
+                alert("Achat réussi !"); // Ou showToast
+                location.reload(); 
+            } else {
+                // Si data.message n'existe pas, on met un texte par défaut
+                alert(data.message || "Erreur lors de l'achat");
+            }
+        } catch (error) {
+            console.error("Erreur:", error);
+            alert("Connexion au serveur impossible.");
         }
     }
 
