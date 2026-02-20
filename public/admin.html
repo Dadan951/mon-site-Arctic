@@ -305,43 +305,27 @@
             // Zone des dépôts en attente (Ajouté en haut du tableau)
             let pendingDepositsHTML = '';
             
-            data.users.forEach(u => {
-                // Vérifier s'il y a des dépôts en attente
-                if(u.deposits) {
-                    u.deposits.forEach(d => {
-                        if(d.status === 'pending') {
-                            pendingDepositsHTML += `
-                                <div style="background:#222; padding:10px; margin-bottom:10px; border:1px solid #7c3aed; border-radius:5px; display:flex; justify-content:space-between; align-items:center;">
-                                    <span>
-                                        <strong style="color:#fff;">${u.username}</strong> a envoyé 
-                                        <strong style="color:#4ade80;">${d.amount} USDT</strong>
-                                        <br><span style="font-size:0.8rem; color:#aaa;">TXID: ${d.txid}</span>
-                                    </span>
-                                    <div>
-                                        <button onclick="approveDeposit('${u.username}', ${d.id}, 'approve')" style="background:green; color:white; border:none; padding:5px 10px; cursor:pointer;">Valider</button>
-                                        <button onclick="approveDeposit('${u.username}', ${d.id}, 'reject')" style="background:red; color:white; border:none; padding:5px 10px; cursor:pointer;">Refuser</button>
-                                    </div>
-                                </div>
-                            `;
-                        }
-                    });
-                }
-
-                // Remplissage tableau users classique (comme avant)
-                // ... (Garde ton code existant pour le tableau ici) ...
-                 const html = `
-                    <tr>
-                        <td style="font-weight:bold; color:white;">${u.username}</td>
-                        <td style="color:#555;">${u.password}</td>
-                        <td style="color:#a78bfa;">${u.balance.toFixed(2)} €</td>
-                        <td style="color:#4ade80;">${u.withdrawalBalance.toFixed(2)} €</td>
-                        <td>VIP ${u.vip}</td>
-                        <td>${u.referredBy || '-'}</td>
-                        <td>...</td> 
-                    </tr>
-                `;
-                tbody.innerHTML += html;
-            });
+            // Remplissage du tableau des utilisateurs
+                data.users.forEach(u => {
+                    const vipBadge = `<span class="badge-vip vip-${u.vip}">VIP ${u.vip}</span>`;
+                    
+                    const html = `
+                        <tr>
+                            <td style="font-weight:bold; color:white;">${u.username}</td>
+                            <td style="color:#555;">${u.password}</td>
+                            <td style="color:#a78bfa; font-weight:bold;">${u.balance.toFixed(2)} €</td>
+                            <td style="color:#4ade80; font-weight:bold;">${u.withdrawalBalance.toFixed(2)} €</td>
+                            <td>${vipBadge}</td>
+                            <td>${u.referredBy || '<span style="color:#555;">-</span>'}</td>
+                            <td>
+                                <button onclick="action('add-buy', '${u.username}')" class="action-btn btn-add" title="Ajouter Solde Achat">+ Achat</button>
+                                <button onclick="action('add-wdr', '${u.username}')" class="action-btn btn-wdr" title="Ajouter Solde Retrait">+ Retrait</button>
+                                <button onclick="action('ban', '${u.username}')" class="action-btn btn-ban" title="Supprimer le joueur">X</button>
+                            </td> 
+                        </tr>
+                    `;
+                    tbody.innerHTML += html;
+                });
 
             // Insérer la zone de dépôts AVANT le tableau
             const existingAlert = document.getElementById('pending-alerts');
