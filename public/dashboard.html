@@ -282,6 +282,10 @@
     </div>
 
     <script>
+        // Force le rafraîchissement des données quand on revient sur l'onglet
+        window.onfocus = function() {
+            loadUserData();
+        };
         const username = localStorage.getItem('arctic_user');
         const token = localStorage.getItem('arctic_token'); // NOUVEAU : On sort le bracelet de la poche
         
@@ -325,7 +329,12 @@
 
         async function loadUserData() {
             try {
-                const response = await fetch('/api/user/' + username);
+                // AJOUT DU TOKEN ICI POUR QUE LE SERVEUR TE RECONNAISSE
+                const response = await fetch('/api/user/' + username, {
+                    headers: {
+                        'Authorization': token 
+                    }
+                });
                 const data = await response.json();
 
                 if (data.success) {
@@ -335,6 +344,8 @@
                     // 1. HEADER & AVATAR
                     document.getElementById('welcome-msg').innerHTML = `Bienvenue, ${user.username}`;
                     const avatarDiv = document.getElementById('dashboard-avatar');
+                    
+                    // On utilise l'avatar de la base de données s'il existe
                     const avatarUrl = user.avatar || 'https://ui-avatars.com/api/?name=' + user.username + '&background=7c3aed&color=fff&size=128';
                     avatarDiv.style.backgroundImage = `url('${avatarUrl}')`;
 
