@@ -179,16 +179,19 @@ app.get('/api/user/:username', verifyToken, async (req, res) => {
             });
 
             // ON S'ASSURE QUE user.avatar EST BIEN PRÉSENT ICI
+            // ON S'ASSURE QUE TOUTES LES DATES SONT ENVOYÉES
             res.json({ 
                 success: true, 
                 user: {
                     username: user.username,
                     balance: user.balance,
                     withdrawalBalance: user.withdrawalBalance,
-                    avatar: user.avatar, // CRUCIAL
+                    avatar: user.avatar, 
                     referralCode: user.referralCode,
                     inventory: Object.fromEntries(user.inventory),
-                    history: user.history
+                    history: user.history,
+                    lastCollection: user.lastCollection, // <-- LA CORRECTION EST LÀ
+                    createdAt: user.createdAt            // <-- ET LÀ
                 }, 
                 vipStatus, 
                 totalDaily: baseDaily * vipStatus.miningBonus, 
