@@ -266,4 +266,22 @@ app.post('/api/add-money', async (req, res) => {
     }
 });
 
+// ROUTE MISE À JOUR PROFIL (Avatar)
+app.post('/api/update-profile', verifyToken, async (req, res) => {
+    const { avatarUrl } = req.body;
+    const username = req.user.username; // Récupéré du Token
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false, message: "Utilisateur non trouvé" });
+
+        user.avatar = avatarUrl;
+        await user.save();
+
+        res.json({ success: true, message: "Profil mis à jour !" });
+    } catch (e) {
+        res.status(500).json({ success: false, message: "Erreur lors de la sauvegarde" });
+    }
+});
+
 app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur le port ${port}`));
