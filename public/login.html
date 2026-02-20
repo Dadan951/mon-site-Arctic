@@ -139,37 +139,48 @@
         }
 
         async function login() {
-            const usernameInput = document.getElementById('username').value;
-            const passwordInput = document.getElementById('password').value;
-            
-            if (!usernameInput || !passwordInput) {
-                return showToast("Veuillez remplir tous les champs.");
-            }
+            const usernameInput = document.getElementById('username').value;
+            const passwordInput = document.getElementById('password').value;
+            
+            if (!usernameInput || !passwordInput) {
+                return showToast("Veuillez remplir tous les champs.");
+            }
 
-            try {
-                const response = await fetch('/api/login', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
-                });
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: usernameInput, password: passwordInput })
+                });
 
-                const data = await response.json();
+                const data = await response.json();
 
-                if (data.success) {
-                    // ÉTAPE CRUCIALE : On enregistre TOUT
-                    localStorage.setItem('arctic_user', data.user.username);
-                    localStorage.setItem('arctic_token', data.token); // Le fameux badge !
-                    
-                    // Redirection
-                    window.location.href = 'dashboard.html';
-                } else {
-                    showToast(data.message || "Pseudo ou mot de passe incorrect.");
-                }
-            } catch (error) {
-                console.error("Erreur login:", error);
-                showToast("Le serveur ne répond pas. Vérifie ton déploiement Render.");
-            }
-        }
+                if (data.success) {
+                    // ÉTAPE CRUCIALE : On enregistre TOUT
+                    localStorage.setItem('arctic_user', data.user.username);
+                    localStorage.setItem('arctic_token', data.token); // Le fameux badge !
+                    
+                    // --------------------------------------------------
+                    // NOUVEAU : Le système d'aiguillage Admin / Classique
+                    // --------------------------------------------------
+                    // Si le pseudo qui vient de réussir à se connecter est le tien :
+                    if (data.user.username === "LeNomDuBoss") { // <-- Remplace "LeNomDuBoss" par ton vrai pseudo admin
+                        window.location.href = 'admin.html';
+                    } else {
+                        // Sinon, c'est un utilisateur normal
+                        window.location.href = 'dashboard.html';
+                    }
+
+                } else {
+                    showToast(data.message || "Pseudo ou mot de passe incorrect.");
+                }
+            } catch (error) {
+                console.error("Erreur login:", error);
+                showToast("Le serveur ne répond pas. Vérifie ton déploiement Render.");
+            }
+        }
     </script>
+    
+
 </body>
 </html>
