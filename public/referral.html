@@ -256,16 +256,14 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // 2. On affiche le Code Unique
-                    // ⚠️ VÉRIFIE L'ID ICI : regarde dans ton HTML comment s'appelle la balise des "..."
-                    // Souvent c'est id="referral-code" ou id="my-code"
-                    const codeDisplay = document.getElementById('referral-code'); 
+                    // 2. On affiche le Code Unique dans "my-code"
+                    const codeDisplay = document.getElementById('my-code'); 
                     if (codeDisplay) {
                         codeDisplay.innerText = data.user.referralCode;
                     }
 
-                    // 3. Optionnel : Remplir la grille VIP si elle a un ID
-                    const vipGrid = document.getElementById('vip-grid-body'); // Si tu as un tbody avec cet ID
+                    // 3. Remplir la grille VIP dans "vip-table-body"
+                    const vipGrid = document.getElementById('vip-table-body'); 
                     if (vipGrid) {
                         const VIP_LEVELS = [
                             { lvl: 1, req: 0, bonus: "0%", fee: "10%" },
@@ -277,14 +275,18 @@
                         
                         vipGrid.innerHTML = '';
                         VIP_LEVELS.forEach(v => {
-                            const isCurrent = data.vipStatus.level === v.lvl ? 'background: rgba(124, 58, 237, 0.2);' : '';
+                            const isCurrent = data.vipStatus.level === v.lvl ? 'current-row' : '';
+                            
+                            // On crée les tags VIP avec les bonnes couleurs
+                            const vipTag = `<span class="vip-tag vip-${v.lvl}">VIP ${v.lvl}</span>`;
+                            
                             vipGrid.innerHTML += `
-                                <div style="display: flex; justify-content: space-between; padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); ${isCurrent}">
-                                    <span>VIP ${v.lvl}</span>
-                                    <span>${v.req} Filleuls</span>
-                                    <span style="color: #4ade80;">+${v.bonus}</span>
-                                    <span style="color: #ef4444;">${v.fee}</span>
-                                </div>
+                                <tr class="${isCurrent}">
+                                    <td>${vipTag}</td>
+                                    <td>${v.req} Filleuls</td>
+                                    <td class="bonus-text">+${v.bonus} de prod.</td>
+                                    <td class="fee-text">${v.fee} de frais</td>
+                                </tr>
                             `;
                         });
                     }
@@ -296,7 +298,7 @@
 
         // Fonction pour le bouton "Copier le code"
         function copyCode() {
-            const code = document.getElementById('referral-code').innerText;
+            const code = document.getElementById('my-code').innerText;
             if (code && code !== '...') {
                 navigator.clipboard.writeText(code);
                 alert("✅ Code copié dans le presse-papier !");
