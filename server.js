@@ -302,9 +302,9 @@ app.post('/api/update-profile', verifyToken, async (req, res) => {
     }
 });
 
-// ROUTE RETRAIT (SÉCURISÉE)
+// ROUTE RETRAIT (SÉCURISÉE AVEC FRAIS VIP)
 app.post('/api/withdraw', verifyToken, async (req, res) => {
-    const username = req.user.username; // On identifie le joueur avec son bracelet
+    const username = req.user.username; 
     const { amount, address } = req.body;
 
     try {
@@ -313,34 +313,43 @@ app.post('/api/withdraw', verifyToken, async (req, res) => {
 
         const withdrawAmount = parseFloat(amount);
 
-        // 1. Sécurité : Vérifier le montant minimum côté serveur
+        // 1. Sécurité : Montant minimum
         if (!withdrawAmount || withdrawAmount < 20) {
             return res.status(400).json({ success: false, message: "Le retrait minimum est de 20 €." });
         }
 
-        // 2. Sécurité : Vérifier s'il a assez d'argent
+        // 2. Sécurité : Solde suffisant
         if (user.withdrawalBalance < withdrawAmount) {
             return res.status(400).json({ success: false, message: "Solde insuffisant pour ce retrait." });
         }
 
-        // 3. On retire l'argent de son solde "Retirable"
+        // --- NOUVEAU : CALCUL DES FRAIS VIP ---
+        const vipStatus = await calculateVip(user); // On vérifie son niveau VIP actuel
+        const feeRate = vipStatus.fee; // Pour VIP 1, ça vaut 0.10 (10%)
+        const feeAmount = withdrawAmount * feeRate; // Les frais (ex: 200 * 0.10 = 20€)
+        const finalAmountSent = withdrawAmount - feeAmount; // L'argent réel reçu (ex: 180€)
+
+        // 3. On retire le montant total demandé de sa tirelire virtuelle
         user.withdrawalBalance -= withdrawAmount;
 
-        // 4. On ajoute une trace dans son historique
-        // On masque un peu l'adresse pour que ça soit propre dans l'historique
+        // 4. On ajoute une trace détaillée dans l'historique
         const shortAddress = address.substring(0, 6) + '...'; 
         user.history.unshift({ 
             type: 'retrait', 
             amount: -withdrawAmount, 
-            desc: `Retrait Crypto vers ${shortAddress}`, 
+            desc: `Retrait (Frais ${feeRate * 100}%) -> ${finalAmountSent.toFixed(2)}€ envoyés`, 
             date: new Date() 
         });
         
-        if (user.history.length > 20) user.history.pop(); // On garde que les 20 derniers
+        if (user.history.length > 20) user.history.pop(); 
 
         await user.save();
 
-        res.json({ success: true, message: "Retrait validé avec succès !" });
+        // 5. On renvoie un joli message avec le montant net calculé
+        res.json({ 
+            success: true, 
+            message: `Retrait validé ! Vous recevrez ${finalAmountSent.toFixed(2)} € (Frais déduits).` 
+        });
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false, message: "Erreur serveur lors du retrait." });
