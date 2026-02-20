@@ -201,31 +201,47 @@
 
     <script>
         const username = localStorage.getItem('arctic_user');
-        if (!username) window.location.href = 'login.html';
+        const token = localStorage.getItem('arctic_token');
 
+        // Sécurité de base
+        if (!username || !token) {
+            window.location.href = 'login.html';
+        }
+
+        // Fonction pour afficher de beaux messages
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
-            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px; animation: slideIn 0.4s forwards;`;
+            toast.style.cssText = `min-width: 280px; background: rgba(20, 20, 25, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-left: 4px solid ${type==='success'?'#7c3aed':'#ef4444'}; color: #fff; padding: 15px 20px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(10px); font-size: 0.9rem; display: flex; align-items: center; margin-top: 10px;`;
             toast.innerHTML = `<span style="margin-right:10px;">${type==='success'?'✅':'⚠️'}</span> <span>${message}</span>`;
             container.appendChild(toast);
             setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 400); }, 3000);
         }
 
+        // --- 1. CHARGEMENT DES DONNÉES SÉCURISÉ ---
         async function loadData() {
             try {
-                const response = await fetch('/api/user/' + username);
+                const response = await fetch('/api/user/' + username, {
+                    headers: {
+                        'Authorization': token // Le bracelet VIP est là !
+                    }
+                });
                 const data = await response.json();
+                
                 if (data.success) {
+                    // On récupère la bonne tirelire !
                     const wBalance = data.user.withdrawalBalance || 0;
                     document.getElementById('withdraw-balance').innerText = wBalance.toFixed(2) + ' €';
                     
                     document.getElementById('vip-level').innerText = data.vipStatus.level;
                     document.getElementById('vip-fee').innerText = (data.vipStatus.fee * 100) + '%';
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { 
+                console.error("Erreur serveur", e); 
+            }
         }
 
+        // --- 2. TRAITEMENT DU RETRAIT ---
         async function processWithdraw() {
             const amountInput = document.getElementById('withdraw-amount');
             const addressInput = document.getElementById('wallet-address');
@@ -233,19 +249,17 @@
             const amount = parseFloat(amountInput.value);
             const address = addressInput.value;
 
-            // --- 🛑 SÉCURITÉ : MONTANT MINIMUM 20€ 🛑 ---
+            // --- 🛑 SÉCURITÉS 🛑 ---
             if (!amount || amount < 20) {
-                showToast("Impossible de retirer : Le montant minimum est de 20 €.", 'error');
-                return; // On arrête tout
+                showToast("Le montant minimum est de 20 €.", 'error');
+                return;
             }
-
-            // Vérification de l'adresse (au moins 5 caractères)
             if (!address || address.length < 5) {
                 showToast("Veuillez entrer une adresse crypto valide.", 'error');
                 return;
             }
 
-            // Désactive le bouton pendant le chargement
+            // Bouton en mode chargement
             const btn = document.querySelector('.withdraw-btn-big');
             const originalText = btn.innerText;
             btn.disabled = true;
@@ -254,34 +268,42 @@
             try {
                 const res = await fetch('/api/withdraw', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, amount, address }) // On envoie aussi l'adresse
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': token // On montre le bracelet pour le retrait aussi !
+                    },
+                    body: JSON.stringify({ amount, address }) 
                 });
+                
                 const data = await res.json();
                 
                 if (data.success) {
                     showToast(data.message, 'success');
-                    amountInput.value = ''; // On vide le champ montant
-                    // On recharge les données pour mettre à jour le solde affiché
-                    setTimeout(loadData, 500); 
+                    amountInput.value = ''; 
+                    addressInput.value = '';
+                    loadData(); // Rafraîchit le solde
                 } else {
-                    showToast(data.message, 'error');
+                    showToast(data.message || "Erreur lors du retrait", 'error');
                 }
             } catch (e) {
-                showToast("Erreur de connexion au serveur", 'error');
+                showToast("Impossible de joindre le serveur", 'error');
             }
 
-            // Réactive le bouton
+            // Restaure le bouton
             btn.disabled = false;
             btn.innerText = originalText;
         }
 
         function toggleSidebar() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('open');
+            document.querySelector('.sidebar').classList.toggle('open');
         }
 
-        function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
+        function logout() { 
+            localStorage.clear(); 
+            window.location.href = 'index.html'; 
+        }
+
+        // Lancement au démarrage de la page
         loadData();
     </script>
 </body>
