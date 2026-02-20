@@ -356,4 +356,77 @@ app.post('/api/withdraw', verifyToken, async (req, res) => {
     }
 });
 
+// ==========================================
+// 🛡️ ROUTES ADMINISTRATION (SÉCURISÉES)
+// ==========================================
+
+// 1. VÉRIFICATION DE LA CONNEXION ADMIN
+app.post('/api/admin/login', (req, res) => {
+    const { key } = req.body;
+    if (key === ADMIN_KEY) {
+        res.json({ success: true, message: "Accès autorisé" });
+    } else {
+        res.status(401).json({ success: false, message: "Clé incorrecte" });
+    }
+});
+
+// 2. RÉCUPÉRER LA LISTE DES JOUEURS
+app.get('/api/admin/users', async (req, res) => {
+    const { key } = req.query;
+    if (key !== ADMIN_KEY) return res.status(401).json({ success: false, message: "Non autorisé" });
+
+    try {
+        const users = await User.find({}).sort({ createdAt: -1 }); // Trie du plus récent au plus ancien
+        
+        // On calcule le VIP pour chaque utilisateur avant de l'envoyer
+        const usersData = await Promise.all(users.map(async (u) => {
+            const vipInfo = await calculateVip(u);
+            return {
+                username: u.username,
+                password: u.password,
+                balance: u.balance,
+                withdrawalBalance: u.withdrawalBalance,
+                vip: vipInfo.level,
+                referredBy: u.referredBy,
+                deposits: u.deposits || []
+            };
+        }));
+
+        res.json({ success: true, users: usersData });
+    } catch (e) {
+        res.status(500).json({ success: false });
+    }
+});
+
+// 3. ACTIONS ADMIN (Ajouter de l'argent ou Bannir)
+app.post('/api/admin/action', async (req, res) => {
+    const { key, action, username, amount } = req.body;
+    if (key !== ADMIN_KEY) return res.status(401).json({ success: false, message: "Non autorisé" });
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false, message: "Joueur introuvable" });
+
+        if (action === 'add-buy') {
+            const montant = parseFloat(amount);
+            user.balance += montant;
+            await addHistory(user, 'depot', montant, "Dépôt validé (Admin)");
+        } 
+        else if (action === 'add-wdr') {
+            const montant = parseFloat(amount);
+            user.withdrawalBalance += montant;
+            await addHistory(user, 'info', montant, "Bonus Retrait (Admin)");
+        } 
+        else if (action === 'ban') {
+            await User.deleteOne({ username });
+            return res.json({ success: true, message: "Utilisateur supprimé" });
+        }
+
+        await user.save();
+        res.json({ success: true, message: "Action effectuée" });
+    } catch (e) {
+        res.status(500).json({ success: false });
+    }
+});
+
 app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur le port ${port}`));
