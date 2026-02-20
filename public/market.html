@@ -279,32 +279,39 @@
         }
     }
 
-    async function buyProduct(itemId) {
-        // 1. On récupère le badge VIP
-        const token = localStorage.getItem('arctic_token');
+    async function buyItem(itemId) {
+        console.log("Tentative d'achat pour :", itemId); // Pour vérifier si le clic marche
         
+        const token = localStorage.getItem('arctic_token');
+        if (!token) {
+            showToast("Erreur : Bracelet VIP (token) manquant. Reconnectez-vous.", "error");
+            return;
+        }
+
         try {
             const response = await fetch('/api/buy', {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
-                    'Authorization': token // ON ENVOIE LE BADGE ICI
+                    'Authorization': token 
                 },
-                body: JSON.stringify({ itemId: itemId })
+                body: JSON.stringify({ itemId: itemId }) 
             });
 
-            const data = await response.json();
+            console.log("Statut réponse serveur :", response.status);
+            const result = await response.json();
+            console.log("Réponse du serveur :", result);
 
-            if (data.success) {
-                alert("Achat réussi !"); // Ou showToast
-                location.reload(); 
+            if (result.success) {
+                showToast("✅ Achat réussi !");
+                // On attend 1 seconde pour que l'utilisateur voie le message, puis on recharge
+                setTimeout(() => { location.reload(); }, 1000);
             } else {
-                // Si data.message n'existe pas, on met un texte par défaut
-                alert(data.message || "Erreur lors de l'achat");
+                showToast(result.message || "L'achat a échoué", "error");
             }
         } catch (error) {
-            console.error("Erreur:", error);
-            alert("Connexion au serveur impossible.");
+            console.error("Erreur fatale lors de l'achat:", error);
+            showToast("Impossible de contacter le serveur.", "error");
         }
     }
 
