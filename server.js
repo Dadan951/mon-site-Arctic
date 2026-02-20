@@ -7,7 +7,7 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const ADMIN_KEY = "ARCTIC_BOSS"; 
+const ADMIN_KEY = process.env.ADMIN_KEY; 
 
 const MONGO_URI = process.env.MONGO_URI; 
 
@@ -129,7 +129,7 @@ app.post('/api/login', async (req, res) => {
         
         return res.json({ 
             success: true, 
-            user: { username: "TonPseudoAdmin" }, 
+            user: { username: "Dadan" }, 
             token: token,
             adminKey: ADMIN_KEY // TRÈS IMPORTANT : on renvoie la clé admin au front !
         });
