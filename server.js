@@ -302,4 +302,49 @@ app.post('/api/update-profile', verifyToken, async (req, res) => {
     }
 });
 
+// ROUTE RETRAIT (SÉCURISÉE)
+app.post('/api/withdraw', verifyToken, async (req, res) => {
+    const username = req.user.username; // On identifie le joueur avec son bracelet
+    const { amount, address } = req.body;
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false, message: "Joueur introuvable." });
+
+        const withdrawAmount = parseFloat(amount);
+
+        // 1. Sécurité : Vérifier le montant minimum côté serveur
+        if (!withdrawAmount || withdrawAmount < 20) {
+            return res.status(400).json({ success: false, message: "Le retrait minimum est de 20 €." });
+        }
+
+        // 2. Sécurité : Vérifier s'il a assez d'argent
+        if (user.withdrawalBalance < withdrawAmount) {
+            return res.status(400).json({ success: false, message: "Solde insuffisant pour ce retrait." });
+        }
+
+        // 3. On retire l'argent de son solde "Retirable"
+        user.withdrawalBalance -= withdrawAmount;
+
+        // 4. On ajoute une trace dans son historique
+        // On masque un peu l'adresse pour que ça soit propre dans l'historique
+        const shortAddress = address.substring(0, 6) + '...'; 
+        user.history.unshift({ 
+            type: 'retrait', 
+            amount: -withdrawAmount, 
+            desc: `Retrait Crypto vers ${shortAddress}`, 
+            date: new Date() 
+        });
+        
+        if (user.history.length > 20) user.history.pop(); // On garde que les 20 derniers
+
+        await user.save();
+
+        res.json({ success: true, message: "Retrait validé avec succès !" });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, message: "Erreur serveur lors du retrait." });
+    }
+});
+
 app.listen(port, () => console.log(`❄️  ARCTIC SYSTEM lancé sur le port ${port}`));
