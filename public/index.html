@@ -121,18 +121,20 @@
 
         /* VIP SECTION */
         .vip-preview {
-            display: flex; align-items: center; justify-content: space-between;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; /* <-- ON CHANGE ICI : On centre tout le monde ! */
             background: linear-gradient(45deg, rgba(20, 20, 25, 0.8), rgba(76, 29, 149, 0.2));
             border: 1px solid rgba(124, 58, 237, 0.3); border-radius: 30px;
             padding: 3rem; margin-top: 4rem; flex-wrap: wrap; gap: 2rem;
+            text-align: center; /* Une sécurité en plus pour le texte */
         }
         .vip-text { 
             flex: 1; 
-            min-width: 280px; 
-            text-align: center; /* Centre les paragraphes et les titres */
+            min-width: 280px; /* Un peu moins large pour mieux passer sur petits mobiles */
             display: flex; 
             flex-direction: column; 
-            align-items: center; /* Centre la liste à puces et le bouton */
+            align-items: center; /* Centre le bouton et la liste verticalement */
         }
         .vip-tags { display: flex; gap: 10px; flex-wrap: wrap; flex: 1; justify-content: center; }
         /* --- NOUVEAUX STYLES DES TAGS VIP --- */
@@ -302,7 +304,7 @@
                 <p style="color: #ccc; margin-bottom: 1.5rem;">
                     L'influence est la clé du pouvoir. Invitez d'autres investisseurs pour grimper les échelons.
                 </p>
-                <ul style="color: #aaa; list-style: none; line-height: 2; padding: 0; text-align: center;">
+                <ul style="color: #aaa; list-style: none; line-height: 2; padding: 0;">
                     <li>✓ Frais de retrait réduits (jusqu'à 3%)</li>
                     <li>✓ Bonus de minage (jusqu'à +50%)</li>
                     <li>✓ Accès prioritaire au support</li>
