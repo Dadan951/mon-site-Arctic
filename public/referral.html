@@ -63,8 +63,10 @@
             background: rgba(20, 20, 25, 0.6);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 20px;
-            overflow: hidden;
+            overflow-x: auto; /* Permet de scroller de gauche à droite ! */
+            -webkit-overflow-scrolling: touch; /* Rend le défilement fluide sur iPhone */
         }
+
         table { width: 100%; border-collapse: collapse; }
         th { text-align: left; padding: 1.5rem; color: #a1a1aa; font-size: 0.9rem; border-bottom: 1px solid rgba(255,255,255,0.05); }
         td { padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.02); }
@@ -112,6 +114,15 @@
 
         /* --- VERSION MOBILE --- */
         @media screen and (max-width: 768px) {
+            
+            /* --- AJUSTEMENTS TABLEAU MOBILE --- */
+            th, td { 
+                padding: 1rem 0.5rem !important; /* On réduit l'espace vide */
+                font-size: 0.75rem !important; /* Texte un peu plus petit */
+            }
+            .vip-table-container table {
+                min-width: 450px; /* Force le tableau à garder sa forme pour qu'on puisse glisser */
+            }
             
             /* LE BOUTON */
             .mobile-toggle {
