@@ -123,7 +123,7 @@ app.post('/api/login', async (req, res) => {
 
     // 👑 1. LE PASSAGE SECRET DU BOSS 👑
     // Pense à remplacer "TonPseudoAdmin" par le pseudo que tu veux taper pour te connecter
-    if (username === "TonPseudoAdmin" && password === ADMIN_KEY) {
+    if (username === "Dadan" && password === ADMIN_KEY) {
         // On te crée un bracelet VIP juste pour la forme
         const token = jwt.sign({ username: "AdminBoss" }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
         
