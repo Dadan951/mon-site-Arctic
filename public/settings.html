@@ -265,26 +265,31 @@
             selectedAvatar = url;
         }
 
-        async function saveSettings() {
-            const email = document.getElementById('email').value;
-            const newPassword = document.getElementById('new-password').value;
+        async function saveAvatar(url) {
+            const token = localStorage.getItem('arctic_token');
 
-            const payload = { username, email, avatar: selectedAvatar };
-            if (newPassword) payload.newPassword = newPassword;
+            try {
+                const response = await fetch('/api/update-profile', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': token
+                    },
+                    body: JSON.stringify({ avatarUrl: url })
+                });
 
-            const res = await fetch('/api/settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+                const data = await response.json();
 
-            const data = await res.json();
-            if (data.success) {
-                showToast(data.message, 'success');
-                // Si mot de passe changé, on pourrait déconnecter, mais on laisse pour l'instant
-                document.getElementById('new-password').value = ''; // Vider le champ
-            } else {
-                showToast(data.message || "Erreur", 'error');
+                if (data.success) {
+                    alert("✅ Avatar enregistré avec succès !");
+                    // Optionnel : mettre à jour l'affichage immédiatement
+                    document.getElementById('current-avatar').src = url;
+                } else {
+                    alert("❌ Erreur : " + data.message);
+                }
+            } catch (error) {
+                console.error("Erreur sauvegarde:", error);
+                alert("Connexion impossible au serveur.");
             }
         }
 
