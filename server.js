@@ -133,6 +133,31 @@ app.post('/api/login', async (req, res) => {
     } catch (e) { res.status(500).json({ error: "Erreur serveur" }); }
 });
 
+// ROUTE CLASSEMENT (À mettre dans server.js)
+app.get('/api/ranking', verifyToken, async (req, res) => {
+    try {
+        // On récupère tous les utilisateurs
+        const allUsers = await User.find({});
+        
+        // On prépare les données pour le front
+        const rankingData = await Promise.all(allUsers.map(async (u) => {
+            const vipInfo = await calculateVip(u); // On calcule leur vrai niveau VIP
+            return {
+                username: u.username,
+                balance: u.balance,
+                vipLevel: vipInfo.level, // On envoie le niveau (1 à 5)
+                avatar: u.avatar
+            };
+        }));
+
+        // ON ENVOIE L'OBJET AVEC LA CLÉ "ranking"
+        res.json({ success: true, ranking: rankingData });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, message: "Erreur serveur classement" });
+    }
+});
+
 // INFO USER
 app.get('/api/user/:username', async (req, res) => {
     try {
