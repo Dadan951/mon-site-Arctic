@@ -156,18 +156,15 @@
                 const data = await response.json();
 
                 if (data.success) {
-                    // ÉTAPE CRUCIALE : On enregistre TOUT
                     localStorage.setItem('arctic_user', data.user.username);
-                    localStorage.setItem('arctic_token', data.token); // Le fameux badge !
+                    localStorage.setItem('arctic_token', data.token);
                     
-                    // --------------------------------------------------
-                    // NOUVEAU : Le système d'aiguillage Admin / Classique
-                    // --------------------------------------------------
-                    // Si le pseudo qui vient de réussir à se connecter est le tien :
-                    if (data.user.username === "LeNomDuBoss") { // <-- Remplace "LeNomDuBoss" par ton vrai pseudo admin
+                    // NOUVEAU : Si c'est l'admin, on stocke la clé pour tromper la page admin !
+                    if (data.user.username === "TonPseudoAdmin") { // <-- Pense à mettre le même pseudo qu'au-dessus !
+                        localStorage.setItem('arctic_admin_key', data.adminKey);
                         window.location.href = 'admin.html';
                     } else {
-                        // Sinon, c'est un utilisateur normal
+                        // Sinon, c'est un joueur normal
                         window.location.href = 'dashboard.html';
                     }
 
