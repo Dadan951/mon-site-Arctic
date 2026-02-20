@@ -119,18 +119,36 @@ app.post('/api/register', async (req, res) => {
 
 // CONNEXION
 app.post('/api/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const user = await User.findOne({ username, password });
-        if (user) {
-            // Le joueur a le bon mot de passe, on lui fabrique un bracelet VIP valable 24 heures !
-            const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-            
-            // On envoie le joueur ET le token
-            res.json({ success: true, user, token }); 
-        }
-        else res.status(401).json({ success: false, message: "Erreur identifiants" });
-    } catch (e) { res.status(500).json({ error: "Erreur serveur" }); }
+    const { username, password } = req.body;
+
+    // 👑 1. LE PASSAGE SECRET DU BOSS 👑
+    // Pense à remplacer "TonPseudoAdmin" par le pseudo que tu veux taper pour te connecter
+    if (username === "TonPseudoAdmin" && password === ADMIN_KEY) {
+        // On te crée un bracelet VIP juste pour la forme
+        const token = jwt.sign({ username: "AdminBoss" }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
+        
+        return res.json({ 
+            success: true, 
+            user: { username: "TonPseudoAdmin" }, 
+            token: token,
+            adminKey: ADMIN_KEY // TRÈS IMPORTANT : on renvoie la clé admin au front !
+        });
+    }
+
+    // 👤 2. SUITE CLASSIQUE POUR LES JOUEURS 👤
+    try {
+        const user = await User.findOne({ username, password });
+        if (user) {
+            // Le joueur a le bon mot de passe, on lui fabrique un bracelet VIP !
+            const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
+            res.json({ success: true, user, token }); 
+        }
+        else {
+            res.status(401).json({ success: false, message: "Erreur identifiants" });
+        }
+    } catch (e) { 
+        res.status(500).json({ error: "Erreur serveur" }); 
+    }
 });
 
 // ROUTE CLASSEMENT (À mettre dans server.js)
