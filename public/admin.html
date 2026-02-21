@@ -376,7 +376,7 @@
 
         function logout() {
             localStorage.removeItem('arctic_admin_key');
-            location.reload();
+            window.location.href = 'index.html';
         }
 
         // Connexion auto si la clé est déjà en mémoire
