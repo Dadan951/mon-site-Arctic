@@ -7,9 +7,13 @@ require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 3000;
-const ADMIN_KEY = process.env.ADMIN_KEY; 
 
-const MONGO_URI = process.env.MONGO_URI; 
+// GILET DE SAUVETAGE ANTI-CRASH 🛟
+// Si Render ne trouve pas les variables, il prendra "ARCTIC_BOSS" et "Admin" par défaut au lieu de crasher !
+const ADMIN_KEY = process.env.ADMIN_KEY || "ARCTIC_BOSS"; 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "Admin"; 
+
+const MONGO_URI = process.env.MONGO_URI;
 
 // On ajoute l'option "family: 4" pour forcer la connexion et éviter le bug DNS
 mongoose.connect(MONGO_URI, {
@@ -119,35 +123,36 @@ app.post('/api/register', async (req, res) => {
 
 // CONNEXION
 app.post('/api/login', async (req, res) => {
-    // 👑 1. LE PASSAGE SECRET DU BOSS 👑
-    const bossUsername = process.env.ADMIN_USERNAME; // On récupère ton pseudo du .env
+    try {
+        const { username, password } = req.body;
 
-    if (username === bossUsername && password === ADMIN_KEY) {
-        const token = jwt.sign({ username: bossUsername }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
-        
-        return res.json({ 
-            success: true, 
-            user: { username: bossUsername }, 
-            token: token,
-            adminKey: ADMIN_KEY,
-            isAdmin: true // TRÈS IMPORTANT : Le signal secret pour le Front-end !
-        });
-    }
+        // 👑 1. LE PASSAGE SECRET DU BOSS 👑
+        if (username === ADMIN_USERNAME && password === ADMIN_KEY) {
+            const token = jwt.sign({ username: ADMIN_USERNAME }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
+            
+            return res.json({ 
+                success: true, 
+                user: { username: ADMIN_USERNAME }, 
+                token: token,
+                adminKey: ADMIN_KEY,
+                isAdmin: true // Le signal secret pour le front
+            });
+        }
 
-    // 👤 2. SUITE CLASSIQUE POUR LES JOUEURS 👤
-    try {
-        const user = await User.findOne({ username, password });
-        if (user) {
-            // Le joueur a le bon mot de passe, on lui fabrique un bracelet VIP !
-            const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET, { expiresIn: '24h' });
-            res.json({ success: true, user, token }); 
-        }
-        else {
-            res.status(401).json({ success: false, message: "Erreur identifiants" });
-        }
-    } catch (e) { 
-        res.status(500).json({ error: "Erreur serveur" }); 
-    }
+        // 👤 2. SUITE CLASSIQUE POUR LES JOUEURS 👤
+        const user = await User.findOne({ username, password });
+        if (user) {
+            const token = jwt.sign({ username: user.username }, process.env.JWT_SECRET || "secours", { expiresIn: '24h' });
+            return res.json({ success: true, user, token }); 
+        } else {
+            return res.status(401).json({ success: false, message: "Erreur identifiants" });
+        }
+        
+    } catch (e) { 
+        // Si quelque chose casse, on l'affiche dans les logs mais LE SERVEUR RESTE ALLUMÉ !
+        console.error("Erreur critique sur la route login:", e);
+        return res.status(500).json({ error: "Erreur serveur" }); 
+    }
 });
 
 // ROUTE CLASSEMENT (À mettre dans server.js)
