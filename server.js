@@ -244,6 +244,53 @@ app.post('/api/buy', verifyToken, async (req, res) => {
     } catch (e) { res.status(500).json({ success: false }); }
 });
 
+// DEMANDE DE DÉPÔT (SÉCURISÉE) + NOTIF DISCORD 🚀
+app.post('/api/deposit', verifyToken, async (req, res) => {
+    const username = req.user.username; // On sait qui fait la demande grâce au Vigile
+    const { amount, txId } = req.body; // Le montant et l'ID de transaction tapés par le joueur
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false, message: "Joueur introuvable." });
+
+        // 1. On crée le ticket de dépôt "En attente"
+        const newDeposit = {
+            id: Math.random().toString(36).substring(2, 10), // Un petit ID unique pour le dépôt
+            amount: parseFloat(amount),
+            txId: txId,
+            status: 'pending', // Très important : il est en attente, l'argent n'est pas encore ajouté !
+            date: new Date()
+        };
+
+        // On l'ajoute dans le sac à dos (base de données) du joueur
+        user.deposits.push(newDeposit);
+        await user.save();
+
+        // 2. 🚨 LA NOTIFICATION DISCORD 🚨
+        const webhookUrl = process.env.DISCORD_WEBHOOK;
+        if (webhookUrl) {
+            // On prépare le beau message pour Discord
+            const messageDiscord = {
+                content: `🚨 **NOUVEAU DÉPÔT EN ATTENTE** 🚨\n👤 Joueur : **${username}**\n💰 Montant annoncé : **${amount} €**\n🔗 TxID à vérifier : \`${txId}\`\n👉 Connecte-toi au Panel Admin pour valider !`
+            };
+
+            // On envoie le message à Discord (sans bloquer le reste du code)
+            fetch(webhookUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(messageDiscord)
+            }).catch(err => console.error("Erreur Webhook Discord :", err));
+        }
+
+        // 3. On rassure le joueur
+        res.json({ success: true, message: "Demande envoyée ! Le Boss vérifie ça très vite." });
+
+    } catch (e) { 
+        console.error(e);
+        res.status(500).json({ success: false, message: "Erreur serveur lors du dépôt." }); 
+    }
+});
+
 // RÉCOLTE (SÉCURISÉE)
 app.post('/api/harvest', verifyToken, async (req, res) => {
     // Pareil, on fait confiance au bracelet, pas à ce que le joueur tape
@@ -448,6 +495,54 @@ app.post('/api/admin/action', async (req, res) => {
         res.json({ success: true, message: "Action effectuée" });
     } catch (e) {
         res.status(500).json({ success: false });
+    }
+});
+
+// 4. ROUTE ADMIN : VALIDER OU REFUSER UN DÉPÔT EN ATTENTE
+app.post('/api/admin/approve-deposit', async (req, res) => {
+    const { key, username, depositId, action } = req.body;
+    
+    // Le vigile vérifie si c'est bien le Boss
+    if (key !== ADMIN_KEY) return res.status(401).json({ success: false, message: "Non autorisé" });
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false, message: "Joueur introuvable" });
+
+        // On cherche le dépôt précis dans son historique
+        const depositIndex = user.deposits.findIndex(d => d.id === depositId);
+        if (depositIndex === -1) return res.status(404).json({ success: false, message: "Dépôt introuvable" });
+
+        // On vérifie qu'il est bien encore "en attente"
+        if (user.deposits[depositIndex].status !== 'pending') {
+            return res.status(400).json({ success: false, message: "Ce dépôt a déjà été traité." });
+        }
+
+        if (action === 'approve') {
+            // 1. On change le statut
+            user.deposits[depositIndex].status = 'approved';
+            
+            // 2. On ajoute l'argent au solde du joueur ! 💰
+            const montant = user.deposits[depositIndex].amount;
+            user.balance += montant;
+            
+            // 3. On ajoute une belle trace dans son historique
+            user.history.unshift({ type: 'depot', amount: montant, desc: "Dépôt Crypto validé", date: new Date() });
+            if (user.history.length > 20) user.history.pop(); // On garde que les 20 derniers
+            
+        } else if (action === 'reject') {
+            // Si c'est un faux dépôt, on le refuse tout simplement
+            user.deposits[depositIndex].status = 'rejected';
+        }
+
+        // Étape cruciale pour dire à la base de données de sauvegarder le tableau modifié
+        user.markModified('deposits');
+        await user.save();
+
+        res.json({ success: true, message: "Action effectuée avec succès !" });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ success: false, message: "Erreur serveur" });
     }
 });
 
