@@ -307,25 +307,27 @@
             
             // Remplissage du tableau des utilisateurs
                 // Remplissage du tableau des utilisateurs ET détection des dépôts
+            // Remplissage du tableau des utilisateurs ET détection des alertes
             data.users.forEach(u => {
                 
-                // 1. RECHERCHE DES DÉPÔTS EN ATTENTE
+                // 🛡️ SÉCURITÉ ANTI-CRASH : On s'assure que tout est bien un nombre, même pour les vieux comptes !
+                const safeBalance = u.balance ? Number(u.balance) : 0;
+                const safeWBalance = u.withdrawalBalance ? Number(u.withdrawalBalance) : 0;
+                
+                // 1. DÉPÔTS EN ATTENTE (Bordure Violette)
                 if (u.deposits && u.deposits.length > 0) {
                     u.deposits.forEach(dep => {
                         if (dep.status === 'pending') {
+                            const depAmount = dep.amount ? Number(dep.amount) : 0;
                             pendingDepositsHTML += `
-                                <div style="background: rgba(20,20,25,0.9); border-left: 4px solid #7c3aed; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                                <div style="background: rgba(20,20,25,0.9); border-left: 4px solid #7c3aed; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <div style="font-size: 1.1rem; margin-bottom: 5px;">
-                                            Joueur <strong style="color: #a78bfa;">${u.username}</strong> a déposé <strong style="color: #4ade80;">${dep.amount} €</strong>
-                                        </div>
-                                        <div style="font-size: 0.85rem; color: #aaa; font-family: monospace;">
-                                            TXID: ${dep.txId}
-                                        </div>
+                                        <div style="font-size: 1.1rem; margin-bottom: 5px;">📥 Dépôt: <strong style="color: #a78bfa;">${u.username}</strong> a envoyé <strong style="color: #4ade80;">${depAmount} €</strong></div>
+                                        <div style="font-size: 0.85rem; color: #aaa; font-family: monospace;">TXID: ${dep.txId}</div>
                                     </div>
                                     <div style="display: flex; gap: 10px;">
-                                        <button onclick="approveDeposit('${u.username}', '${dep.id}', 'approve')" style="background: #059669; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">✅ Valider</button>
-                                        <button onclick="approveDeposit('${u.username}', '${dep.id}', 'reject')" style="background: #dc2626; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; font-weight: bold; transition: 0.2s;">❌ Refuser</button>
+                                        <button onclick="approveDeposit('${u.username}', '${dep.id}', 'approve')" style="background: #059669; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅</button>
+                                        <button onclick="approveDeposit('${u.username}', '${dep.id}', 'reject')" style="background: #dc2626; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">❌</button>
                                     </div>
                                 </div>
                             `;
@@ -337,11 +339,13 @@
                 if (u.withdrawals && u.withdrawals.length > 0) {
                     u.withdrawals.forEach(wdr => {
                         if (wdr.status === 'pending') {
+                            const wdrAmount = wdr.amount ? Number(wdr.amount) : 0;
+                            const wdrFinal = wdr.finalAmount ? Number(wdr.finalAmount) : 0;
                             pendingDepositsHTML += `
                                 <div style="background: rgba(20,20,25,0.9); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
                                     <div>
-                                        <div style="font-size: 1.1rem; margin-bottom: 5px;">📤 Retrait: <strong style="color: #3b82f6;">${u.username}</strong> demande <strong style="color: #ef4444;">${wdr.amount} €</strong></div>
-                                        <div style="font-size: 0.85rem; color: #aaa; font-family: monospace;">Envoyer net: <span style="color:white; font-weight:bold;">${wdr.finalAmount.toFixed(2)} €</span> à l'adresse:<br><span style="user-select:all; color:#60a5fa;">${wdr.address}</span></div>
+                                        <div style="font-size: 1.1rem; margin-bottom: 5px;">📤 Retrait: <strong style="color: #3b82f6;">${u.username}</strong> demande <strong style="color: #ef4444;">${wdrAmount} €</strong></div>
+                                        <div style="font-size: 0.85rem; color: #aaa; font-family: monospace;">Envoyer net: <span style="color:white; font-weight:bold;">${wdrFinal.toFixed(2)} €</span> à l'adresse:<br><span style="user-select:all; color:#60a5fa;">${wdr.address}</span></div>
                                     </div>
                                     <div style="display: flex; gap: 10px;">
                                         <button onclick="approveWithdrawal('${u.username}', '${wdr.id}', 'approve')" style="background: #059669; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ Envoyé</button>
@@ -352,6 +356,26 @@
                         }
                     });
                 }
+
+                // 3. GÉNÉRATION DE LA LIGNE DU TABLEAU CLASSIQUE
+                const vipBadge = `<span class="badge-vip vip-${u.vip || 1}">VIP ${u.vip || 1}</span>`;
+                const html = `
+                    <tr>
+                        <td style="font-weight:bold; color:white;">${u.username}</td>
+                        <td style="color:#555;">${u.password || '---'}</td>
+                        <td style="color:#a78bfa; font-weight:bold;">${safeBalance.toFixed(2)} €</td>
+                        <td style="color:#4ade80; font-weight:bold;">${safeWBalance.toFixed(2)} €</td>
+                        <td>${vipBadge}</td>
+                        <td>${u.referredBy || '<span style="color:#555;">-</span>'}</td>
+                        <td>
+                            <button onclick="action('add-buy', '${u.username}')" class="action-btn btn-add" title="Ajouter Solde Achat">+ Achat</button>
+                            <button onclick="action('add-wdr', '${u.username}')" class="action-btn btn-wdr" title="Ajouter Solde Retrait">+ Retrait</button>
+                            <button onclick="action('ban', '${u.username}')" class="action-btn btn-ban" title="Supprimer le joueur">X</button>
+                        </td> 
+                    </tr>
+                `;
+                tbody.innerHTML += html;
+            });
 
                 // 2. GÉNÉRATION DE LA LIGNE DU TABLEAU CLASSIQUE
                 const vipBadge = `<span class="badge-vip vip-${u.vip}">VIP ${u.vip}</span>`;
