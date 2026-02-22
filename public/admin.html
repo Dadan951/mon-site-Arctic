@@ -333,6 +333,26 @@
                     });
                 }
 
+                // 2. RETRAITS EN ATTENTE (Bordure Bleue)
+                if (u.withdrawals && u.withdrawals.length > 0) {
+                    u.withdrawals.forEach(wdr => {
+                        if (wdr.status === 'pending') {
+                            pendingDepositsHTML += `
+                                <div style="background: rgba(20,20,25,0.9); border-left: 4px solid #3b82f6; padding: 15px; margin-bottom: 10px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                                    <div>
+                                        <div style="font-size: 1.1rem; margin-bottom: 5px;">📤 Retrait: <strong style="color: #3b82f6;">${u.username}</strong> demande <strong style="color: #ef4444;">${wdr.amount} €</strong></div>
+                                        <div style="font-size: 0.85rem; color: #aaa; font-family: monospace;">Envoyer net: <span style="color:white; font-weight:bold;">${wdr.finalAmount.toFixed(2)} €</span> à l'adresse:<br><span style="user-select:all; color:#60a5fa;">${wdr.address}</span></div>
+                                    </div>
+                                    <div style="display: flex; gap: 10px;">
+                                        <button onclick="approveWithdrawal('${u.username}', '${wdr.id}', 'approve')" style="background: #059669; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">✅ Envoyé</button>
+                                        <button onclick="approveWithdrawal('${u.username}', '${wdr.id}', 'reject')" style="background: #dc2626; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; font-weight: bold;">❌ Refuser</button>
+                                    </div>
+                                </div>
+                            `;
+                        }
+                    });
+                }
+
                 // 2. GÉNÉRATION DE LA LIGNE DU TABLEAU CLASSIQUE
                 const vipBadge = `<span class="badge-vip vip-${u.vip}">VIP ${u.vip}</span>`;
                 const html = `
@@ -372,6 +392,17 @@
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ key: SECRET_KEY, username, depositId, action })
+            });
+            loadUsers(); // Rafraîchir
+        }
+
+        async function approveWithdrawal(username, withdrawalId, action) {
+            if(!confirm(action === 'approve' ? "As-tu bien fait le virement crypto ?" : "Refuser et rembourser le joueur ?")) return;
+            
+            await fetch('/api/admin/approve-withdrawal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: SECRET_KEY, username, withdrawalId, action })
             });
             loadUsers(); // Rafraîchir
         }
