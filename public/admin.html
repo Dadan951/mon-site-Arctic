@@ -302,19 +302,15 @@
             const tbody = document.getElementById('users-table');
             tbody.innerHTML = '';
 
-            // Zone des dépôts en attente (Ajouté en haut du tableau)
             let pendingDepositsHTML = '';
             
-            // Remplissage du tableau des utilisateurs
-                // Remplissage du tableau des utilisateurs ET détection des dépôts
-            // Remplissage du tableau des utilisateurs ET détection des alertes
             data.users.forEach(u => {
                 
-                // 🛡️ SÉCURITÉ ANTI-CRASH : On s'assure que tout est bien un nombre, même pour les vieux comptes !
+                // 🛡️ SÉCURITÉ ANTI-CRASH
                 const safeBalance = u.balance ? Number(u.balance) : 0;
                 const safeWBalance = u.withdrawalBalance ? Number(u.withdrawalBalance) : 0;
                 
-                // 1. DÉPÔTS EN ATTENTE (Bordure Violette)
+                // 1. DÉPÔTS EN ATTENTE (Violet)
                 if (u.deposits && u.deposits.length > 0) {
                     u.deposits.forEach(dep => {
                         if (dep.status === 'pending') {
@@ -335,7 +331,7 @@
                     });
                 }
 
-                // 2. RETRAITS EN ATTENTE (Bordure Bleue)
+                // 2. RETRAITS EN ATTENTE (Bleu)
                 if (u.withdrawals && u.withdrawals.length > 0) {
                     u.withdrawals.forEach(wdr => {
                         if (wdr.status === 'pending') {
@@ -377,37 +373,18 @@
                 tbody.innerHTML += html;
             });
 
-                // 2. GÉNÉRATION DE LA LIGNE DU TABLEAU CLASSIQUE
-                const vipBadge = `<span class="badge-vip vip-${u.vip}">VIP ${u.vip}</span>`;
-                const html = `
-                    <tr>
-                        <td style="font-weight:bold; color:white;">${u.username}</td>
-                        <td style="color:#555;">${u.password}</td>
-                        <td style="color:#a78bfa; font-weight:bold;">${u.balance.toFixed(2)} €</td>
-                        <td style="color:#4ade80; font-weight:bold;">${u.withdrawalBalance.toFixed(2)} €</td>
-                        <td>${vipBadge}</td>
-                        <td>${u.referredBy || '<span style="color:#555;">-</span>'}</td>
-                        <td>
-                            <button onclick="action('add-buy', '${u.username}')" class="action-btn btn-add" title="Ajouter Solde Achat">+ Achat</button>
-                            <button onclick="action('add-wdr', '${u.username}')" class="action-btn btn-wdr" title="Ajouter Solde Retrait">+ Retrait</button>
-                            <button onclick="action('ban', '${u.username}')" class="action-btn btn-ban" title="Supprimer le joueur">X</button>
-                        </td> 
-                    </tr>
-                `;
-                tbody.innerHTML += html;
-            });
-
-            // Insérer la zone de dépôts AVANT le tableau
+            // Insérer la zone de dépôts/retraits AVANT le tableau
             const existingAlert = document.getElementById('pending-alerts');
             if(existingAlert) existingAlert.remove();
             
             if(pendingDepositsHTML) {
                 const alertBox = document.createElement('div');
                 alertBox.id = 'pending-alerts';
-                alertBox.innerHTML = '<h3 style="color:#4ade80;">💰 Dépôts en attente :</h3>' + pendingDepositsHTML;
+                alertBox.innerHTML = '<h3 style="color:#4ade80;">⚠️ Demandes en attente :</h3>' + pendingDepositsHTML;
                 document.querySelector('.card').prepend(alertBox);
             }
         }
+
 
         async function approveDeposit(username, depositId, action) {
             if(!confirm(action === 'approve' ? "Valider ce dépôt ?" : "Refuser ?")) return;
