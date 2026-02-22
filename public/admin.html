@@ -432,7 +432,10 @@
         }
 
         function logout() {
-            localStorage.removeItem('arctic_admin_key');
+            // On vide TOUTE la mémoire du navigateur (Admin, User, Token...)
+            localStorage.clear();
+            
+            // Et on te ramène à l'accueil
             window.location.href = 'index.html';
         }
 
