@@ -154,29 +154,42 @@
         }
 
         async function submitDeposit() {
-            const amount = document.getElementById('amount').value;
-            const txid = document.getElementById('txid').value;
+            const amount = document.getElementById('amount').value;
+            const txId = document.getElementById('txid').value; // On met bien un grand "I" ici
+            const token = localStorage.getItem('arctic_token'); // On récupère le bracelet VIP !
 
-            if(!amount || !txid) return alert("Veuillez remplir tous les champs.");
+            if(!amount || !txId) return alert("Veuillez remplir tous les champs.");
 
-            try {
-                const res = await fetch('/api/deposit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, amount, txid })
-                });
-                const data = await res.json();
-                if(data.success) {
-                    alert(data.message);
-                    window.location.href = 'dashboard.html';
-                } else {
-                    alert("Erreur lors de l'envoi.");
-                }
-            } catch (e) {
-                console.error(e);
-                alert("Erreur serveur.");
-            }
-        }
+            try {
+                // On met un petit texte d'attente sur le bouton
+                const btn = document.querySelector('.submit-btn');
+                btn.innerText = "ENVOI EN COURS...";
+
+                const res = await fetch('/api/deposit', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': token // On montre le bracelet au vigile !
+                    },
+                    // Plus besoin d'envoyer le username, le vigile le lit directement sur le bracelet
+                    body: JSON.stringify({ amount: amount, txId: txId })
+                });
+                
+                const data = await res.json();
+                
+                if(data.success) {
+                    alert("✅ " + data.message);
+                    window.location.href = 'dashboard.html';
+                } else {
+                    alert("❌ Erreur : " + data.message);
+                    btn.innerText = "ENVOYER LA PREUVE";
+                }
+            } catch (e) {
+                console.error(e);
+                alert("Erreur serveur, veuillez réessayer.");
+                document.querySelector('.submit-btn').innerText = "ENVOYER LA PREUVE";
+            }
+        }
 
         function logout() { localStorage.removeItem('arctic_user'); window.location.href = 'index.html'; }
     </script>
