@@ -38,6 +38,7 @@ const userSchema = new mongoose.Schema({
     email: String,
     inventory: { type: Map, of: Number, default: {} },
     history: { type: Array, default: [] },
+    withdrawals: { type: Array, default: [] },
     deposits: { type: Array, default: [] },
     lastCollection: { type: Date, default: Date.now },
     createdAt: { type: Date, default: Date.now }
@@ -371,7 +372,7 @@ app.post('/api/update-profile', verifyToken, async (req, res) => {
     }
 });
 
-// ROUTE RETRAIT (SÉCURISÉE AVEC FRAIS VIP)
+// ROUTE RETRAIT (SÉCURISÉE AVEC ATTENTE ADMIN)
 app.post('/api/withdraw', verifyToken, async (req, res) => {
     const username = req.user.username; 
     const { amount, address } = req.body;
@@ -382,43 +383,45 @@ app.post('/api/withdraw', verifyToken, async (req, res) => {
 
         const withdrawAmount = parseFloat(amount);
 
-        // 1. Sécurité : Montant minimum
         if (!withdrawAmount || withdrawAmount < 20) {
             return res.status(400).json({ success: false, message: "Le retrait minimum est de 20 €." });
         }
-
-        // 2. Sécurité : Solde suffisant
         if (user.withdrawalBalance < withdrawAmount) {
-            return res.status(400).json({ success: false, message: "Solde insuffisant pour ce retrait." });
+            return res.status(400).json({ success: false, message: "Solde insuffisant." });
         }
 
-        // --- NOUVEAU : CALCUL DES FRAIS VIP ---
-        const vipStatus = await calculateVip(user); // On vérifie son niveau VIP actuel
-        const feeRate = vipStatus.fee; // Pour VIP 1, ça vaut 0.10 (10%)
-        const feeAmount = withdrawAmount * feeRate; // Les frais (ex: 200 * 0.10 = 20€)
-        const finalAmountSent = withdrawAmount - feeAmount; // L'argent réel reçu (ex: 180€)
+        // CALCUL DES FRAIS VIP
+        const vipStatus = await calculateVip(user); 
+        const feeRate = vipStatus.fee; 
+        const feeAmount = withdrawAmount * feeRate; 
+        const finalAmountSent = withdrawAmount - feeAmount; 
 
-        // 3. On retire le montant total demandé de sa tirelire virtuelle
+        // 1. On gèle l'argent immédiatement pour éviter la triche
         user.withdrawalBalance -= withdrawAmount;
 
-        // 4. On ajoute une trace détaillée dans l'historique
-        const shortAddress = address.substring(0, 6) + '...'; 
-        user.history.unshift({ 
-            type: 'retrait', 
-            amount: -withdrawAmount, 
-            desc: `Retrait (Frais ${feeRate * 100}%) -> ${finalAmountSent.toFixed(2)}€ envoyés`, 
-            date: new Date() 
-        });
-        
-        if (user.history.length > 20) user.history.pop(); 
-
+        // 2. On crée le ticket de retrait en attente
+        const newWithdrawal = {
+            id: Math.random().toString(36).substring(2, 10),
+            amount: withdrawAmount,
+            finalAmount: finalAmountSent,
+            address: address,
+            status: 'pending',
+            date: new Date()
+        };
+        user.withdrawals.push(newWithdrawal);
         await user.save();
 
-        // 5. On renvoie un joli message avec le montant net calculé
-        res.json({ 
-            success: true, 
-            message: `Retrait validé ! Vous recevrez ${finalAmountSent.toFixed(2)} € (Frais déduits).` 
-        });
+        // 3. 🚨 NOTIFICATION DISCORD 🚨
+        const webhookUrl = process.env.DISCORD_WEBHOOK2;
+        if (webhookUrl) {
+            const messageDiscord = {
+                content: `📤 **NOUVELLE DEMANDE DE RETRAIT** 📤\n👤 Joueur : **${username}**\n💰 Montant demandé : **${withdrawAmount} €**\n💸 Montant net à envoyer : **${finalAmountSent.toFixed(2)} €** (Frais: ${feeRate * 100}%)\n🏦 Adresse : \`${address}\`\n👉 Panneau Admin pour valider !`
+            };
+            fetch(webhookUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(messageDiscord) })
+            .catch(err => console.error("Erreur Webhook Discord :", err));
+        }
+
+        res.json({ success: true, message: "Demande envoyée ! En attente de validation par l'administrateur." });
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false, message: "Erreur serveur lors du retrait." });
@@ -457,7 +460,8 @@ app.get('/api/admin/users', async (req, res) => {
                 withdrawalBalance: u.withdrawalBalance,
                 vip: vipInfo.level,
                 referredBy: u.referredBy,
-                deposits: u.deposits || []
+                deposits: u.deposits || [],
+                withdrawals: u.withdrawals || []
             };
         }));
 
@@ -543,6 +547,43 @@ app.post('/api/admin/approve-deposit', async (req, res) => {
     } catch (e) {
         console.error(e);
         res.status(500).json({ success: false, message: "Erreur serveur" });
+    }
+});
+
+
+// ROUTE ADMIN : VALIDER OU REFUSER UN RETRAIT
+app.post('/api/admin/approve-withdrawal', async (req, res) => {
+    const { key, username, withdrawalId, action } = req.body;
+    if (key !== ADMIN_KEY) return res.status(401).json({ success: false, message: "Non autorisé" });
+
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(404).json({ success: false });
+
+        const wIndex = user.withdrawals.findIndex(w => w.id === withdrawalId);
+        if (wIndex === -1 || user.withdrawals[wIndex].status !== 'pending') {
+            return res.status(400).json({ success: false, message: "Retrait introuvable ou déjà traité." });
+        }
+
+        const wdr = user.withdrawals[wIndex];
+
+        if (action === 'approve') {
+            wdr.status = 'approved';
+            user.history.unshift({ type: 'retrait', amount: -wdr.amount, desc: `Retrait Validé (${wdr.finalAmount.toFixed(2)}€ envoyés)`, date: new Date() });
+        } else if (action === 'reject') {
+            wdr.status = 'rejected';
+            // ON LUI REND SON ARGENT 💰
+            user.withdrawalBalance += wdr.amount;
+            user.history.unshift({ type: 'info', amount: wdr.amount, desc: "Retrait Refusé (Remboursement)", date: new Date() });
+        }
+
+        if (user.history.length > 20) user.history.pop();
+        user.markModified('withdrawals');
+        await user.save();
+
+        res.json({ success: true, message: "Retrait " + (action === 'approve' ? "validé !" : "refusé !") });
+    } catch (e) {
+        res.status(500).json({ success: false });
     }
 });
 
